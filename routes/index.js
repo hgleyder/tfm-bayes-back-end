@@ -1,16 +1,18 @@
 import express from 'express'
-const { MultinomialNB } = require('../models');
-var router = express.Router();
+import { MultinomialNB, GaussianNB } from '../models';
 import Matrix from 'ml-matrix';
+
+
+var router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  const matrix = new Matrix([[1,1], [2,1]]);
-  var model = new MultinomialNB();
-  model.train(matrix, [1, 2]);
+  const matrix = new Matrix([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]]);
+  var model = new GaussianNB();
+  model.train(matrix, [1, 1, 1, 2, 2, 2]);
 
-  const matrixTest = new Matrix([[1,1], [2,1]]);
-var predictions = model.predict(matrixTest);
+  const matrixTest = [[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]];
+  var predictions = model.predict(matrixTest);
   console.log(predictions)
   res.json(predictions);
 });
