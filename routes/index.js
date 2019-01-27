@@ -4,7 +4,8 @@ import Matrix from 'ml-matrix';
 import {
 	getDatasetNumericalRepresentation,
 	getNumerialMatrixFromRepresentation,
-} from '../models/utils';
+} from '../models/utils/models';
+import { crossValidationModel } from '../models/utils/evaluation';
 
 var router = express.Router();
 
@@ -34,7 +35,7 @@ router.get('/', function(req, res, next) {
 	res.json(predictions);
 });
 
-/* GET home page. */
+/* Create model from text attributes example */
 router.get('/text', function(req, res, next) {
 	let matrix = [ [ 'calido', 'seco' ], [ 'frio', 'seco' ] ];
 	const attributesRepresentations = getDatasetNumericalRepresentation(matrix);
@@ -50,6 +51,27 @@ router.get('/text', function(req, res, next) {
 		attributesRepresentations,
 	);
 	var predictions = model.predict(matrixTest);
+	res.json(predictions);
+});
+
+/* Cross Validation */
+router.get('/cross', function(req, res, next) {
+	const X = [
+		[ 1, 1 ],
+		[ 2, 2 ],
+		[ 1, 1 ],
+		[ 2, 2 ],
+		[ 1, 1 ],
+		[ 2, 2 ],
+		[ 1, 1 ],
+		[ 2, 2 ],
+		[ 1, 1 ],
+		[ 2, 2 ],
+		[ 1, 1 ],
+		[ 2, 2 ],
+	];
+	const y = [ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 ];
+	var predictions = crossValidationModel(new MultinomialNB(), X, y);
 	res.json(predictions);
 });
 

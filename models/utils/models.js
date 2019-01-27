@@ -44,23 +44,6 @@ export function separateClasses(X, y) {
 
 /**
  * @public
- * Function that returns an array of classes.
- * @param {Array} y - predictions
- * @return {Array} - List of different classes
- */
-export function getClassesList(y) {
-	var totalPerClasses = {};
-	for (var i = 0; i < y.length; i++) {
-		if (totalPerClasses[y[i]] === undefined) {
-			totalPerClasses[y[i]] = 0;
-		}
-		totalPerClasses[y[i]]++;
-	}
-	return Object.keys(totalPerClasses);
-}
-
-/**
- * @public
  * Function that returns an object of attributes numerical representation.
   * @param {Matrix} X - dataset
  * @return {Object} - Numerical representation object
