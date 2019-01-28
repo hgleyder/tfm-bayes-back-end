@@ -54,25 +54,34 @@ router.get('/text', function(req, res, next) {
 	res.json(predictions);
 });
 
-/* Cross Validation */
+/* Cross Validation Metrics */
 router.get('/cross', function(req, res, next) {
 	const X = [
-		[ 1, 1 ],
-		[ 2, 2 ],
-		[ 1, 1 ],
-		[ 2, 2 ],
-		[ 1, 1 ],
-		[ 2, 2 ],
-		[ 1, 1 ],
-		[ 2, 2 ],
-		[ 1, 1 ],
-		[ 2, 2 ],
-		[ 1, 1 ],
-		[ 2, 2 ],
+		[ 'segundo', 1 ],
+		[ 'segundo', 2 ],
+		[ 'segundo', 3 ],
+		[ 'segundo', 4 ],
+		[ 'segundo', 5 ],
+		[ 'primero', 1 ],
+		[ 'primero', 2 ],
+		[ 'primero', 3 ],
+		[ 'primero', 4 ],
+		[ 'primero', 5 ],
 	];
-	const y = [ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 ];
-	var predictions = crossValidationModel(new MultinomialNB(), X, y);
-	res.json(predictions);
+	const y = [
+		'Up',
+		'Up',
+		'Up',
+		'Up',
+		'Up',
+		'Down',
+		'Down',
+		'Down',
+		'Down',
+		'Down',
+	];
+	var metrics = crossValidationModel(MultinomialNB, X, y);
+	res.json(metrics);
 });
 
 module.exports = router;
