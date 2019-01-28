@@ -33,6 +33,14 @@ export function crossValidationModel(classificationModel, X, y, folds = 10) {
 
 	const metrics = {};
 	metrics['generalAccuracy'] = getGeneralAccuracy(clasificationResults);
+	metrics['accuracyByClasses'] = {};
+	classList.map((c) => {
+		metrics['accuracyByClasses'][c.toString()] = getClassAccuracy(
+			clasificationResults,
+			c,
+		);
+	});
+	getGeneralAccuracy(clasificationResults);
 	return metrics;
 }
 
@@ -61,6 +69,26 @@ export function getGeneralAccuracy(predictions) {
 	const predictionsLength = predictions.length;
 	let correctlyInstantiatedCounter = 0;
 	predictions.map((p) => {
+		if (p['prediction'] === p['expected']) correctlyInstantiatedCounter++;
+	});
+	return `${(parseFloat(correctlyInstantiatedCounter / predictionsLength) *
+		100).toFixed(4)}%`;
+}
+
+/**
+ * @public
+ * Function that returns model class Accuracy.
+ * @param {Array} predictions - predictions
+ * @param {String} currentClass - predictions
+ * @return {Double} - Model Class Accuracy
+ */
+export function getClassAccuracy(predictions, currentClass) {
+	const auxPredictions = predictions.filter(
+		(p) => p.expected === currentClass.toString(),
+	);
+	const predictionsLength = auxPredictions.length;
+	let correctlyInstantiatedCounter = 0;
+	auxPredictions.map((p) => {
 		if (p['prediction'] === p['expected']) correctlyInstantiatedCounter++;
 	});
 	return `${(parseFloat(correctlyInstantiatedCounter / predictionsLength) *
