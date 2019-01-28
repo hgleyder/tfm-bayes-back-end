@@ -67,6 +67,11 @@ router.get('/cross', function(req, res, next) {
 		[ 'primero', 3 ],
 		[ 'primero', 4 ],
 		[ 'primero', 5 ],
+		[ 'tercero', 5 ],
+		[ 'cuarto', 5 ],
+		[ 'quinto', 5 ],
+		[ 'primero', 3 ],
+		[ 'primero', 4 ],
 	];
 	const y = [
 		'Up',
@@ -75,6 +80,11 @@ router.get('/cross', function(req, res, next) {
 		'Up',
 		'Up',
 		'Down',
+		'Down',
+		'Down',
+		'Down',
+		'Down',
+		'Up',
 		'Down',
 		'Down',
 		'Down',
