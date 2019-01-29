@@ -56,6 +56,7 @@ export function crossValidationModel(classificationModel, X, y, folds = 10) {
 	metrics['precisionByClasses'] = {};
 	metrics['recallByClasses'] = {};
 	metrics['fMeasureByClasses'] = {};
+	metrics['confusionMatrixByClasses'] = {};
 	classList.map((c) => {
 		metrics['precisionByClasses'][c.toString()] = getClassPrecision(
 			clasificationResults,
@@ -69,6 +70,9 @@ export function crossValidationModel(classificationModel, X, y, folds = 10) {
 			getClassPrecision(clasificationResults, c),
 			getClassRecall(clasificationResults, c),
 		);
+		metrics['confusionMatrixByClasses'][
+			c.toString()
+		] = getClassConfusionMatrix(clasificationResults, c, classList);
 	});
 	return metrics;
 }
@@ -168,4 +172,28 @@ export function calculateFMeasure(precision, recall) {
 	const p = parseFloat(precision);
 	const r = parseFloat(recall);
 	return (2 * (p * r / (p + r))).toFixed(4);
+}
+
+/**
+ * @public
+ * Function that returns Confusion matrix per class.
+ * @param {Array} predictions - predictions
+ * @param {String} currentClass - the class we want to calculate the CM
+ * @param {Array} classList - all classes list
+ * @return {Object} - Confusion Matrix of the Class
+ */
+export function getClassConfusionMatrix(predictions, currentClass, classList) {
+	const auxPredictions = predictions.filter(
+		(p) => p.expected === currentClass.toString(),
+	);
+	let aux = {};
+	classList.map((c) => {
+		aux[c.toString()] = 0;
+	});
+
+	auxPredictions.map((prediction) => {
+		aux[prediction.prediction.toString()] += 1;
+	});
+
+	return aux;
 }
