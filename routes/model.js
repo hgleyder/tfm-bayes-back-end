@@ -25,4 +25,20 @@ router.post('/multinomial/create/cv', function(req, res, next) {
 	res.json(metrics);
 });
 
+/* Cross Validation Metrics from data */
+router.post('/gaussian/create/cv', function(req, res, next) {
+	console.log(req);
+	var data = {
+		instances: req.body.data.instances,
+		classes: req.body.data.classes,
+	};
+
+	var metrics = crossValidationModel(
+		GaussianNB,
+		data.instances,
+		data.classes,
+	);
+	res.json(metrics);
+});
+
 module.exports = router;
