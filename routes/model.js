@@ -27,7 +27,6 @@ router.post('/multinomial/create/cv', function(req, res, next) {
 
 /* Cross Validation Metrics from data */
 router.post('/gaussian/create/cv', function(req, res, next) {
-	console.log(req);
 	var data = {
 		instances: req.body.data.instances,
 		classes: req.body.data.classes,
@@ -35,6 +34,31 @@ router.post('/gaussian/create/cv', function(req, res, next) {
 
 	var metrics = crossValidationModel(
 		GaussianNB,
+		data.instances,
+		data.classes,
+	);
+	res.json(metrics);
+});
+
+/* Cross Validation Metrics from data */
+router.post('/bernoulli/create/cv', function(req, res, next) {
+	var data = {
+		instances: req.body.data.instances,
+		classes: req.body.data.classes,
+	};
+
+	// inspect if there is at least an string attribute
+	const stringAttr = data.instances[0].find(
+		(attr) => typeof attr === 'string' || attr instanceof String,
+	);
+
+	if (stringAttr) {
+		res.status(400);
+		res.json({ error: 'The attributes should be numeric' });
+	}
+
+	var metrics = crossValidationModel(
+		BernoulliNB,
 		data.instances,
 		data.classes,
 	);

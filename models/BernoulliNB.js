@@ -31,16 +31,30 @@ export class BernoulliNB {
 			);
 		}
 
-		var separateClass = separateClasses(trainingSet, trainingLabels);
+		// inspect if there is at least an string attribute
+		const stringAttr = trainingSet[0].find(
+			(attr) => typeof attr === 'string' || attr instanceof String,
+		);
+
+		if (stringAttr) {
+			throw new RangeError('the attributes should be numeric');
+		}
+
+		let auxTraniningSet = trainingSet;
+		auxTraniningSet.map((instance) =>
+			instance.map((attr) => (attr > 0 ? 1 : 0)),
+		);
+
+		var separateClass = separateClasses(auxTraniningSet, trainingLabels);
 		this.priorProbability = new Matrix(separateClass.length, 1);
 
 		for (var i = 0; i < separateClass.length; ++i) {
 			this.priorProbability[i][0] = Math.log(
-				separateClass[i].length / trainingSet.rows,
+				separateClass[i].length / auxTraniningSet.rows,
 			);
 		}
 
-		var features = trainingSet.columns;
+		var features = auxTraniningSet.columns;
 		this.conditionalProbability = new Matrix(
 			separateClass.length,
 			features,
