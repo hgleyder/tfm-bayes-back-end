@@ -17,12 +17,16 @@ router.post('/multinomial/create/cv', function(req, res, next) {
 		classes: req.body.data.classes,
 	};
 
-	var metrics = crossValidationModel(
-		MultinomialNB,
-		data.instances,
-		data.classes,
-	);
-	res.json(metrics);
+	try {
+		var metrics = crossValidationModel(
+			MultinomialNB,
+			data.instances,
+			data.classes,
+		);
+		res.json(metrics);
+	} catch (e) {
+		res.status(500).send({ error: 'Something failed!' });
+	}
 });
 
 /* Cross Validation Metrics from data */
@@ -32,12 +36,16 @@ router.post('/gaussian/create/cv', function(req, res, next) {
 		classes: req.body.data.classes,
 	};
 
-	var metrics = crossValidationModel(
-		GaussianNB,
-		data.instances,
-		data.classes,
-	);
-	res.json(metrics);
+	try {
+		var metrics = crossValidationModel(
+			GaussianNB,
+			data.instances,
+			data.classes,
+		);
+		res.json(metrics);
+	} catch (e) {
+		res.status(500).send({ error: 'Something failed!' });
+	}
 });
 
 /* Cross Validation Metrics from data */
@@ -53,16 +61,19 @@ router.post('/bernoulli/create/cv', function(req, res, next) {
 	);
 
 	if (stringAttr) {
-		res.status(400);
-		res.json({ error: 'The attributes should be numeric' });
+		res.status(500).send({ error: 'The attributes should be numeric' });
 	}
 
-	var metrics = crossValidationModel(
-		BernoulliNB,
-		data.instances,
-		data.classes,
-	);
-	res.json(metrics);
+	try {
+		var metrics = crossValidationModel(
+			BernoulliNB,
+			data.instances,
+			data.classes,
+		);
+		res.json(metrics);
+	} catch (e) {
+		res.status(500).send({ error: 'Something failed!' });
+	}
 });
 
 /* Cross Validation Metrics from data */

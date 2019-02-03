@@ -13,68 +13,78 @@ import {
  * @return {Matrix} - Numerical representation matrix
  */
 export function crossValidationModel(classificationModel, X, y, folds = 10) {
-	const instancesAmount = y.length;
-	const instancesPerFold = Math.floor(instancesAmount / folds);
-	const clasificationResults = [];
-	// inspect if there is at least an string attribute
-	const stringAttr = X[0].find(
-		(attr) => typeof attr === 'string' || attr instanceof String,
-	);
-	let counter = 0;
-	while (counter < folds) {
-		let auxXtest = [];
-		let auxYtest = [];
-		var model = new classificationModel();
-		var auxX = X.map((item) => item);
-		var auxY = y.map((item) => item);
-		if (stringAttr) {
-			const attributesRepresentations = getDatasetNumericalRepresentation(
-				auxX,
+	try {
+		const instancesAmount = y.length;
+		const instancesPerFold = Math.floor(instancesAmount / folds);
+		const clasificationResults = [];
+		// inspect if there is at least an string attribute
+		const stringAttr = X[0].find(
+			(attr) => typeof attr === 'string' || attr instanceof String,
+		);
+		let counter = 0;
+		while (counter < folds) {
+			let auxXtest = [];
+			let auxYtest = [];
+			var model = new classificationModel();
+			var auxX = X.map((item) => item);
+			var auxY = y.map((item) => item);
+			if (stringAttr) {
+				const attributesRepresentations = getDatasetNumericalRepresentation(
+					auxX,
+				);
+				auxX = getNumerialMatrixFromRepresentation(
+					auxX,
+					attributesRepresentations,
+				);
+			}
+			auxXtest = auxX.splice(
+				counter * instancesPerFold,
+				instancesPerFold,
 			);
-			auxX = getNumerialMatrixFromRepresentation(
-				auxX,
-				attributesRepresentations,
+			auxYtest = auxY.splice(
+				counter * instancesPerFold,
+				instancesPerFold,
 			);
-		}
-		auxXtest = auxX.splice(counter * instancesPerFold, instancesPerFold);
-		auxYtest = auxY.splice(counter * instancesPerFold, instancesPerFold);
-		var auxClassList = getClassesList(auxY);
-		model.train(auxX, auxY);
-		var predictions = model.predict(auxXtest);
-		predictions.map((prediction, i) => {
-			clasificationResults.push({
-				prediction: auxClassList[prediction].toString(),
-				expected: auxYtest[i].toString(),
+			var auxClassList = getClassesList(auxY);
+			model.train(auxX, auxY);
+			var predictions = model.predict(auxXtest);
+			predictions.map((prediction, i) => {
+				clasificationResults.push({
+					prediction: auxClassList[prediction].toString(),
+					expected: auxYtest[i].toString(),
+				});
 			});
-		});
-		counter++;
-	}
+			counter++;
+		}
 
-	const metrics = {};
-	const classList = getClassesList(y);
-	metrics['generalAccuracy'] = getGeneralAccuracy(clasificationResults);
-	metrics['precisionByClasses'] = {};
-	metrics['recallByClasses'] = {};
-	metrics['fMeasureByClasses'] = {};
-	metrics['confusionMatrixByClasses'] = {};
-	classList.map((c) => {
-		metrics['precisionByClasses'][c.toString()] = getClassPrecision(
-			clasificationResults,
-			c,
-		);
-		metrics['recallByClasses'][c.toString()] = getClassRecall(
-			clasificationResults,
-			c,
-		);
-		metrics['fMeasureByClasses'][c.toString()] = calculateFMeasure(
-			getClassPrecision(clasificationResults, c),
-			getClassRecall(clasificationResults, c),
-		);
-		metrics['confusionMatrixByClasses'][
-			c.toString()
-		] = getClassConfusionMatrix(clasificationResults, c, classList);
-	});
-	return metrics;
+		const metrics = {};
+		const classList = getClassesList(y);
+		metrics['generalAccuracy'] = getGeneralAccuracy(clasificationResults);
+		metrics['precisionByClasses'] = {};
+		metrics['recallByClasses'] = {};
+		metrics['fMeasureByClasses'] = {};
+		metrics['confusionMatrixByClasses'] = {};
+		classList.map((c) => {
+			metrics['precisionByClasses'][c.toString()] = getClassPrecision(
+				clasificationResults,
+				c,
+			);
+			metrics['recallByClasses'][c.toString()] = getClassRecall(
+				clasificationResults,
+				c,
+			);
+			metrics['fMeasureByClasses'][c.toString()] = calculateFMeasure(
+				getClassPrecision(clasificationResults, c),
+				getClassRecall(clasificationResults, c),
+			);
+			metrics['confusionMatrixByClasses'][
+				c.toString()
+			] = getClassConfusionMatrix(clasificationResults, c, classList);
+		});
+		return metrics;
+	} catch (e) {
+		throw new Error('Incorrect type of data for this model');
+	}
 }
 
 /**
