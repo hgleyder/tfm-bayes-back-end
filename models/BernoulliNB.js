@@ -41,9 +41,11 @@ export class BernoulliNB {
 		}
 
 		let auxTraniningSet = trainingSet;
-		auxTraniningSet.map((instance) =>
-			instance.map((attr) => (attr > 0 ? 1 : 0)),
-		);
+		auxTraniningSet.map((instance, ind) => {
+			auxTraniningSet[ind].map((attr, ind2) => {
+				auxTraniningSet[ind][ind2] = attr > 0 ? 1 : 0;
+			});
+		});
 
 		var separateClass = separateClasses(auxTraniningSet, trainingLabels);
 		this.priorProbability = new Matrix(separateClass.length, 1);
@@ -61,12 +63,21 @@ export class BernoulliNB {
 		);
 		for (i = 0; i < separateClass.length; ++i) {
 			var classValues = Matrix.checkMatrix(separateClass[i]);
-			var total = classValues.sum();
-			var divisor = total + features;
-			this.conditionalProbability.setRow(
-				i,
-				classValues.sum('column').add(1).div(divisor).apply(matrixLog),
-			);
+			const alpha = 1;
+			const smoothing = 2 * alpha;
+			let totalAttrPerClass = new Array(features).fill(0);
+			for (let index = 0; index < features; index++) {
+				classValues.map((instance) => {
+					totalAttrPerClass[index] += instance[index];
+				});
+				totalAttrPerClass[index] += alpha;
+			}
+			var divisor = classValues.length + smoothing;
+			const result = [];
+			totalAttrPerClass.map((val) => {
+				result.push(parseFloat(val / divisor));
+			});
+			this.conditionalProbability.setRow(i, result);
 		}
 	}
 
