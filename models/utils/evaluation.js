@@ -12,34 +12,36 @@ export function crossValidationModel(classificationModel, X, y, folds = 10) {
 		const instancesAmount = y.length;
 		const instancesPerFold = Math.floor(instancesAmount / folds);
 		const clasificationResults = [];
-		// inspect if there is at least an string attribute
-		const stringAttr = X[0].find(
-			(attr) => typeof attr === 'string' || attr instanceof String,
-		);
+
 		let counter = 0;
 		while (counter < folds) {
-			let auxXtest = [];
-			let auxYtest = [];
-			var model = new classificationModel();
-			var auxX = X.map((item) => item);
-			var auxY = y.map((item) => item);
-			auxXtest = auxX.splice(
-				counter * instancesPerFold,
-				instancesPerFold,
-			);
-			auxYtest = auxY.splice(
-				counter * instancesPerFold,
-				instancesPerFold,
-			);
-			var auxClassList = getClassesList(auxY);
-			model.train(auxX, auxY);
-			var predictions = model.predict(auxXtest);
-			predictions.map((prediction, i) => {
-				clasificationResults.push({
-					prediction: auxClassList[prediction].toString(),
-					expected: auxYtest[i].toString(),
+			try {
+				let auxXtest = [];
+				let auxYtest = [];
+				var model = new classificationModel();
+				var auxX = X.map((item) => item);
+				var auxY = y.map((item) => item);
+				auxXtest = auxX.splice(
+					counter * instancesPerFold,
+					instancesPerFold,
+				);
+				auxYtest = auxY.splice(
+					counter * instancesPerFold,
+					instancesPerFold,
+				);
+				var auxClassList = getClassesList(auxY);
+				model.train(auxX, auxY);
+
+				var predictions = model.predict(auxXtest);
+				predictions.map((prediction, i) => {
+					clasificationResults.push({
+						prediction: auxClassList[prediction].toString(),
+						expected: auxYtest[i].toString(),
+					});
 				});
-			});
+			} catch (e) {
+				console.log(e);
+			}
 			counter++;
 		}
 

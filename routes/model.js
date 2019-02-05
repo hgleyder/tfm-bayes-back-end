@@ -104,7 +104,6 @@ router.post('/naivebayes/create/cv', function(req, res, next) {
 		instances: req.body.data.instances,
 		classes: req.body.data.classes,
 	};
-
 	try {
 		var metrics = crossValidationModel(
 			NaiveBayes,
@@ -143,12 +142,14 @@ router.get('/bernoulli/create/cv', function(req, res, next) {
 /* Cross Validation Metrics from data */
 router.get('/nb', function(req, res, next) {
 	var X = [
-		[ 'blue', 'red', 'yellow' ],
-		[ 'blue', 'red', 'yellow' ],
-		[ 'blue', 'red', 'yellow' ],
+		[ 'silver', 'silver', 'silver', 'silver', 'silver', 'gray' ],
+		[ 'silver', 'gray', 'silver', 'gray', 'silver', 'gray' ],
+		[ 'silver', 'silver', 'silver', 'silver', 'silver', 'gray' ],
+		[ 'gray', 'silver', 'silver', 'gray', 'silver', 'gray' ],
+		[ 'silver', 'gray', 'silver', 'gray', 'silver', 'gray' ],
 	];
 
-	var y = [ 1, 1, 2 ];
+	var y = [ 'invierno1', 'invierno2', 'invierno1', 'invierno2', 'invierno1' ];
 
 	var model = new NaiveBayes();
 	model.train(X, y);
