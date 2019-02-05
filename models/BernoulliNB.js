@@ -88,9 +88,15 @@ export class BernoulliNB {
    */
 	predict(dataset) {
 		dataset = Matrix.checkMatrix(dataset);
-		var predictions = new Array(dataset.rows);
-		for (var i = 0; i < dataset.rows; ++i) {
-			var currentElement = dataset.getRowVector(i);
+		let auxDataset = dataset;
+		auxDataset.map((instance, ind) => {
+			auxDataset[ind].map((attr, ind2) => {
+				auxDataset[ind][ind2] = attr > 0 ? 1 : 0;
+			});
+		});
+		var predictions = new Array(auxDataset.rows);
+		for (var i = 0; i < auxDataset.rows; ++i) {
+			var currentElement = auxDataset.getRowVector(i);
 			predictions[i] = this.conditionalProbability
 				.clone()
 				.mulRowVector(currentElement)
