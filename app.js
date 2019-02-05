@@ -6,8 +6,6 @@ var logger = require('morgan');
 const bodyParser = require('body-parser');
 
 var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-var filesRouter = require('./routes/files');
 var modelRouter = require('./routes/model');
 
 import frontEndUrl from './config/frontEndUrl';
@@ -51,8 +49,6 @@ app.use(function(req, res, next) {
 });
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/files', filesRouter);
 app.use('/model', modelRouter);
 
 // catch 404 and forward to error handler

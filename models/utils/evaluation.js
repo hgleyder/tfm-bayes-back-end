@@ -1,8 +1,3 @@
-import {
-	getDatasetNumericalRepresentation,
-	getNumerialMatrixFromRepresentation,
-} from './models';
-
 /**
  * @public
  * Evaluate Model with cross validation
@@ -28,15 +23,6 @@ export function crossValidationModel(classificationModel, X, y, folds = 10) {
 			var model = new classificationModel();
 			var auxX = X.map((item) => item);
 			var auxY = y.map((item) => item);
-			if (stringAttr) {
-				const attributesRepresentations = getDatasetNumericalRepresentation(
-					auxX,
-				);
-				auxX = getNumerialMatrixFromRepresentation(
-					auxX,
-					attributesRepresentations,
-				);
-			}
 			auxXtest = auxX.splice(
 				counter * instancesPerFold,
 				instancesPerFold,

@@ -4,7 +4,7 @@ import { separateClasses } from './utils/models';
 
 export class BernoulliNB {
 	/**
-   * Constructor for Multinomial Naive Bayes, the model parameter is for load purposes.
+   * Constructor for Bernoulli Naive Bayes, the model parameter is for load purposes.
    * @constructor
    * @param {object} model - for load purposes.
    */
@@ -111,7 +111,7 @@ export class BernoulliNB {
 	static load(model) {
 		if (model.name !== 'BernoulliNB') {
 			throw new RangeError(
-				`${model.name} is not a Multinomial Naive Bayes`,
+				`${model.name} is not a Bernoulli Naive Bayes`,
 			);
 		}
 

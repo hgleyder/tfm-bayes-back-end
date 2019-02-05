@@ -1,10 +1,11 @@
 import express from 'express';
-import { MultinomialNB, GaussianNB, BernoulliNB } from '../models';
+import { MultinomialNB, GaussianNB, BernoulliNB, NaiveBayes } from '../models';
 import Matrix from 'ml-matrix';
 import {
 	getDatasetNumericalRepresentation,
 	getNumerialMatrixFromRepresentation,
 } from '../models/utils/models';
+import ErrorMessages from '../utils/errorMessages';
 import { crossValidationModel } from '../models/utils/evaluation';
 
 var router = express.Router();
@@ -17,6 +18,16 @@ router.post('/multinomial/create/cv', function(req, res, next) {
 		classes: req.body.data.classes,
 	};
 
+	// inspect if there is at least an string attribute
+	const stringAttr = data.instances[0].find(
+		(attr) => typeof attr === 'string' || attr instanceof String,
+	);
+	if (stringAttr) {
+		res
+			.status(500)
+			.send({ error: ErrorMessages.NUMERIC_ATTRIBUTES_REQUIRED });
+	}
+
 	try {
 		var metrics = crossValidationModel(
 			MultinomialNB,
@@ -25,7 +36,7 @@ router.post('/multinomial/create/cv', function(req, res, next) {
 		);
 		res.json(metrics);
 	} catch (e) {
-		res.status(500).send({ error: 'Something failed!' });
+		res.status(500).send({ error: ErrorMessages.ERROR_OCCURRED });
 	}
 });
 
@@ -36,6 +47,16 @@ router.post('/gaussian/create/cv', function(req, res, next) {
 		classes: req.body.data.classes,
 	};
 
+	// inspect if there is at least an string attribute
+	const stringAttr = data.instances[0].find(
+		(attr) => typeof attr === 'string' || attr instanceof String,
+	);
+	if (stringAttr) {
+		res
+			.status(500)
+			.send({ error: ErrorMessages.NUMERIC_ATTRIBUTES_REQUIRED });
+	}
+
 	try {
 		var metrics = crossValidationModel(
 			GaussianNB,
@@ -44,7 +65,7 @@ router.post('/gaussian/create/cv', function(req, res, next) {
 		);
 		res.json(metrics);
 	} catch (e) {
-		res.status(500).send({ error: 'Something failed!' });
+		res.status(500).send({ error: ErrorMessages.ERROR_OCCURRED });
 	}
 });
 
@@ -59,9 +80,10 @@ router.post('/bernoulli/create/cv', function(req, res, next) {
 	const stringAttr = data.instances[0].find(
 		(attr) => typeof attr === 'string' || attr instanceof String,
 	);
-
 	if (stringAttr) {
-		res.status(500).send({ error: 'The attributes should be numeric' });
+		res
+			.status(500)
+			.send({ error: ErrorMessages.NUMERIC_ATTRIBUTES_REQUIRED });
 	}
 
 	try {
@@ -72,7 +94,26 @@ router.post('/bernoulli/create/cv', function(req, res, next) {
 		);
 		res.json(metrics);
 	} catch (e) {
-		res.status(500).send({ error: 'Something failed!' });
+		res.status(500).send({ error: ErrorMessages.ERROR_OCCURRED });
+	}
+});
+
+/* Cross Validation Metrics from data */
+router.post('/naivebayes/create/cv', function(req, res, next) {
+	var data = {
+		instances: req.body.data.instances,
+		classes: req.body.data.classes,
+	};
+
+	try {
+		var metrics = crossValidationModel(
+			NaiveBayes,
+			data.instances,
+			data.classes,
+		);
+		res.json(metrics);
+	} catch (e) {
+		res.status(500).send({ error: ErrorMessages.ERROR_OCCURRED });
 	}
 });
 
@@ -97,6 +138,22 @@ router.get('/bernoulli/create/cv', function(req, res, next) {
 	model.train(X, y);
 	// var metrics = crossValidationModel(BernoulliNB, X, y);
 	res.json(model);
+});
+
+/* Cross Validation Metrics from data */
+router.get('/nb', function(req, res, next) {
+	var X = [
+		[ 'blue', 'red', 'yellow' ],
+		[ 'blue', 'red', 'yellow' ],
+		[ 'blue', 'red', 'yellow' ],
+	];
+
+	var y = [ 1, 1, 2 ];
+
+	var model = new NaiveBayes();
+	model.train(X, y);
+	const pred = model.predict(X);
+	res.json(pred);
 });
 
 module.exports = router;
