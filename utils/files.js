@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-export const modelsDirectory = './uploads/temp/models';
+export const modelsDirectory = './uploads/temp/models/';
 
 export const downloadAFileResponse = (response, fileName, directory) => {
 	var fileLocation = path.join(directory, fileName);
