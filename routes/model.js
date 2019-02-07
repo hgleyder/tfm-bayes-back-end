@@ -116,39 +116,4 @@ router.post('/naivebayes/create/cv', function(req, res, next) {
 	}
 });
 
-/* Cross Validation Metrics from data */
-router.get('/bernoulli/create/cv', function(req, res, next) {
-	var X = [
-		[ 2, 1, 0, 0, 0, 0 ],
-		[ 2, 0, 1, 0, 0, 0 ],
-		[ 1, 0, 0, 1, 0, 0 ],
-		[ 1, 0, 0, 0, 1, 1 ],
-	];
-
-	var y = [ 0, 0, 0, 1 ];
-
-	var model = new BernoulliNB();
-	model.train(X, y);
-	// var metrics = crossValidationModel(BernoulliNB, X, y);
-	res.json(model);
-});
-
-/* Cross Validation Metrics from data */
-router.get('/nb', function(req, res, next) {
-	var X = [
-		[ 'silver', 'silver', 'silver', 'silver', 'silver', 'gray' ],
-		[ 'silver', 'gray', 'silver', 'gray', 'silver', 'gray' ],
-		[ 'silver', 'silver', 'silver', 'silver', 'silver', 'gray' ],
-		[ 'gray', 'silver', 'silver', 'gray', 'silver', 'gray' ],
-		[ 'silver', 'gray', 'silver', 'gray', 'silver', 'gray' ],
-	];
-
-	var y = [ 'invierno1', 'invierno2', 'invierno1', 'invierno2', 'invierno1' ];
-
-	var model = new NaiveBayes();
-	model.train(X, y);
-	const pred = model.predict(X);
-	res.json(pred);
-});
-
 module.exports = router;

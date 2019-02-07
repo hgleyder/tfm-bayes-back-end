@@ -91,12 +91,12 @@ export class GaussianNB {
 	}
 
 	/**
-   * Function that export the NaiveBayes model.
+   * Function that export the GaussianNB model.
    * @return {object}
    */
 	toJSON() {
 		return {
-			modelName: 'NaiveBayes',
+			modelName: 'GaussianNB',
 			means: this.means,
 			calculateProbabilities: this.calculateProbabilities,
 		};
@@ -108,7 +108,7 @@ export class GaussianNB {
    * @return {GaussianNB}
    */
 	static load(model) {
-		if (model.modelName !== 'NaiveBayes') {
+		if (model.modelName !== 'GaussianNB') {
 			throw new RangeError(
 				'The current model is not a Multinomial Naive Bayes, current model:',
 				model.name,

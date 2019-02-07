@@ -1,11 +1,8 @@
 import express from 'express';
 import { MultinomialNB, GaussianNB } from '../models';
 import Matrix from 'ml-matrix';
-import {
-	getDatasetNumericalRepresentation,
-	getNumerialMatrixFromRepresentation,
-} from '../models/utils/models';
-import { crossValidationModel } from '../models/utils/evaluation';
+import fs from 'fs';
+import path from 'path';
 
 var router = express.Router();
 
@@ -35,63 +32,27 @@ router.get('/', function(req, res, next) {
 	res.json(predictions);
 });
 
-/* Create model from text attributes example */
-router.get('/text', function(req, res, next) {
-	let matrix = [ [ 'calido', 'seco' ], [ 'frio', 'seco' ] ];
-	const attributesRepresentations = getDatasetNumericalRepresentation(matrix);
-	matrix = getNumerialMatrixFromRepresentation(
-		matrix,
-		attributesRepresentations,
-	);
-	var model = new MultinomialNB();
-	model.train(matrix, [ 'verano', 'invierno' ]);
-
-	const matrixTest = getNumerialMatrixFromRepresentation(
-		[ [ 'frio', 'seco' ] ],
-		attributesRepresentations,
-	);
-	var predictions = model.predict(matrixTest);
-	res.json(predictions);
+// define a route to download a file
+router.get('/download/:file(*)', (req, res) => {
+	var file = req.params.file;
+	var fileLocation = path.join('./temp/models', file);
+	console.log(fileLocation);
+	res.download(fileLocation, file);
 });
 
-/* Cross Validation Metrics */
-router.get('/cross', function(req, res, next) {
-	const X = [
-		[ 'segundo', 1 ],
-		[ 'segundo', 2 ],
-		[ 'segundo', 3 ],
-		[ 'segundo', 4 ],
-		[ 'segundo', 5 ],
-		[ 'primero', 1 ],
-		[ 'primero', 2 ],
-		[ 'primero', 3 ],
-		[ 'primero', 4 ],
-		[ 'primero', 5 ],
-		[ 'tercero', 5 ],
-		[ 'cuarto', 5 ],
-		[ 'quinto', 5 ],
-		[ 'primero', 3 ],
-		[ 'primero', 4 ],
-	];
-	const y = [
-		'Up',
-		'Up',
-		'Up',
-		'Up',
-		'Up',
-		'Down',
-		'Down',
-		'Down',
-		'Down',
-		'Down',
-		'Up',
-		'Down',
-		'Down',
-		'Down',
-		'Down',
-	];
-	var metrics = crossValidationModel(MultinomialNB, X, y);
-	res.json(metrics);
+/* GET home page. */
+router.get('/delete', function(req, res, next) {
+	const directory = './temp/models';
+
+	fs.readdir(directory, (err, files) => {
+		if (err) throw err;
+		for (const file of files) {
+			fs.unlink(path.join(directory, file), (err) => {
+				if (err) throw err;
+			});
+		}
+	});
+	res.send('HOLA');
 });
 
 module.exports = router;
