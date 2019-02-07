@@ -21,5 +21,6 @@ export const deleteAllFilesFromDir = (directory) => {
 
 export const createJsonFile = (json, directory, fileName) => {
 	let data = JSON.stringify(json);
+	console.log(json);
 	fs.writeFileSync(`${directory}/${fileName}.json`, data);
 };
