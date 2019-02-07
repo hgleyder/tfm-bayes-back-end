@@ -16,7 +16,17 @@ router.post('/saveModel', function(req, res, next) {
 		instances: req.body.data.instances,
 		classes: req.body.data.classes,
 	};
-	const model = new MultinomialNB();
+	let model;
+	switch (data.modelName) {
+		case 'MultinomialNB':
+			model = new MultinomialNB();
+		case 'NaiveBayes':
+			model = new NaiveBayes();
+		case 'BernoulliNB':
+			model = new BernoulliNB();
+		case 'GaussianNB':
+			model = new GaussianNB();
+	}
 	model.train(data.instances, data.classes);
 	const uuid = new Date().getTime();
 	const modelName = '';
