@@ -11,10 +11,8 @@ export class NaiveBayes {
    */
 	constructor(model) {
 		if (model) {
-			this.conditionalProbability = Matrix.checkMatrix(
-				model.conditionalProbability,
-			);
-			this.priorProbability = Matrix.checkMatrix(model.priorProbability);
+			this.probabilities = model.probabilities;
+			this.classes = model.classes;
 		}
 	}
 
@@ -140,8 +138,8 @@ export class NaiveBayes {
 	toJSON() {
 		return {
 			name: 'NaiveBayes',
-			priorProbability: this.priorProbability,
-			conditionalProbability: this.conditionalProbability,
+			probabilities: this.probabilities,
+			classes: this.classes,
 		};
 	}
 

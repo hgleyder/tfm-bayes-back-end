@@ -7,6 +7,7 @@ import {
 } from '../models/utils/models';
 import ErrorMessages from '../utils/errorMessages';
 import { crossValidationModel } from '../models/utils/evaluation';
+import { loadModelFromImportedData } from '../models/utils/import';
 
 var router = express.Router();
 
@@ -34,9 +35,13 @@ router.post('/multinomial/create/cv', function(req, res, next) {
 			data.instances,
 			data.classes,
 		);
-		res.json(metrics);
+		const model = new MultinomialNB();
+		model.train(data.instances, data.classes);
+		res.json({ model, metrics });
 	} catch (e) {
-		res.status(500).send({ error: ErrorMessages.ERROR_OCCURRED });
+		res
+			.status(500)
+			.send({ error: ErrorMessages.ERROR_OCCURRED_EVALUATIONS });
 	}
 });
 
@@ -63,9 +68,13 @@ router.post('/gaussian/create/cv', function(req, res, next) {
 			data.instances,
 			data.classes,
 		);
-		res.json(metrics);
+		const model = new GaussianNB();
+		model.train(data.instances, data.classes);
+		res.json({ model, metrics });
 	} catch (e) {
-		res.status(500).send({ error: ErrorMessages.ERROR_OCCURRED });
+		res
+			.status(500)
+			.send({ error: ErrorMessages.ERROR_OCCURRED_EVALUATIONS });
 	}
 });
 
@@ -92,9 +101,13 @@ router.post('/bernoulli/create/cv', function(req, res, next) {
 			data.instances,
 			data.classes,
 		);
-		res.json(metrics);
+		const model = new BernoulliNB();
+		model.train(data.instances, data.classes);
+		res.json({ model, metrics });
 	} catch (e) {
-		res.status(500).send({ error: ErrorMessages.ERROR_OCCURRED });
+		res
+			.status(500)
+			.send({ error: ErrorMessages.ERROR_OCCURRED_EVALUATIONS });
 	}
 });
 
@@ -110,9 +123,24 @@ router.post('/naivebayes/create/cv', function(req, res, next) {
 			data.instances,
 			data.classes,
 		);
-		res.json(metrics);
+		const model = new NaiveBayes();
+		model.train(data.instances, data.classes);
+		res.json({ model, metrics });
 	} catch (e) {
-		res.status(500).send({ error: ErrorMessages.ERROR_OCCURRED });
+		res
+			.status(500)
+			.send({ error: ErrorMessages.ERROR_OCCURRED_EVALUATIONS });
+	}
+});
+
+/* Load model from json */
+router.post('/load', function(req, res, next) {
+	var data = req.body.data;
+	try {
+		const model = loadModelFromImportedData(data);
+		res.json(model);
+	} catch (e) {
+		res.status(500).send({ error: ErrorMessages.ERROR_OCCURRED_LOAD });
 	}
 });
 
