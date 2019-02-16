@@ -1,6 +1,7 @@
 import Matrix from 'ml-matrix';
 
 import { separateClasses } from './utils/models';
+import { getClassesList } from './utils/evaluation';
 
 export class MultinomialNB {
 	/**
@@ -14,6 +15,7 @@ export class MultinomialNB {
 				model.conditionalProbability,
 			);
 			this.priorProbability = Matrix.checkMatrix(model.priorProbability);
+			this.classes = model.classes;
 		}
 	}
 
@@ -54,6 +56,8 @@ export class MultinomialNB {
 				classValues.sum('column').add(1).div(divisor).apply(matrixLog),
 			);
 		}
+
+		this.classes = getClassesList(trainingLabels);
 	}
 
 	/**
@@ -86,6 +90,7 @@ export class MultinomialNB {
 			name: 'MultinomialNB',
 			priorProbability: this.priorProbability,
 			conditionalProbability: this.conditionalProbability,
+			classes: this.classes,
 		};
 	}
 

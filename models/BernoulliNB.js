@@ -1,6 +1,7 @@
 import Matrix from 'ml-matrix';
 
 import { separateClasses } from './utils/models';
+import { getClassesList } from './utils/evaluation';
 
 export class BernoulliNB {
 	/**
@@ -14,6 +15,7 @@ export class BernoulliNB {
 				model.conditionalProbability,
 			);
 			this.priorProbability = Matrix.checkMatrix(model.priorProbability);
+			this.classes = model.classes;
 		}
 	}
 
@@ -79,6 +81,7 @@ export class BernoulliNB {
 			});
 			this.conditionalProbability.setRow(i, result);
 		}
+		this.classes = getClassesList(trainingLabels);
 	}
 
 	/**
@@ -117,6 +120,7 @@ export class BernoulliNB {
 			name: 'BernoulliNB',
 			priorProbability: this.priorProbability,
 			conditionalProbability: this.conditionalProbability,
+			classes: this.classes,
 		};
 	}
 

@@ -2,6 +2,7 @@ import Matrix from 'ml-matrix';
 import Stat from 'ml-stat';
 
 import { separateClasses } from './utils/models';
+import { getClassesList } from './utils/evaluation';
 
 export class GaussianNB {
 	/**
@@ -14,6 +15,7 @@ export class GaussianNB {
 		if (reload) {
 			this.means = model.means;
 			this.calculateProbabilities = model.calculateProbabilities;
+			this.classes = model.classes;
 		}
 	}
 
@@ -62,6 +64,8 @@ export class GaussianNB {
 		}
 
 		this.calculateProbabilities = calculateProbabilities;
+
+		this.classes = getClassesList(trainingLabels);
 	}
 
 	/**
@@ -99,6 +103,7 @@ export class GaussianNB {
 			modelName: 'GaussianNB',
 			means: this.means,
 			calculateProbabilities: this.calculateProbabilities,
+			classes: this.classes,
 		};
 	}
 

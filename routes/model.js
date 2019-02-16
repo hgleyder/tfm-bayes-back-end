@@ -144,4 +144,17 @@ router.post('/load', function(req, res, next) {
 	}
 });
 
+/* Load model from json */
+router.post('/predict', function(req, res, next) {
+	var modelData = req.body.modelData;
+	var instances = req.body.instances;
+	try {
+		const model = loadModelFromImportedData(modelData);
+		const predictions = model.predict(instances);
+		res.json(predictions.map((p) => model.classes[parseInt(p)]));
+	} catch (e) {
+		res.status(500).send({ error: ErrorMessages.ERROR_OCCURRED_LOAD });
+	}
+});
+
 module.exports = router;
