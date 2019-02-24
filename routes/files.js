@@ -1,6 +1,7 @@
 import express from 'express';
 import { MultinomialNB, GaussianNB, BernoulliNB, NaiveBayes } from '../models';
 import Matrix from 'ml-matrix';
+
 import {
 	createJsonFile,
 	downloadAFileResponse,

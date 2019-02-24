@@ -14,7 +14,9 @@
     "hbs": "~4.0.1",
     "http-errors": "~1.6.2",
     "ml-matrix": "^5.2.1",
-    "morgan": "~1.9.0"
+    "morgan": "~1.9.0",
+    "stemmer": "^1.0.3",
+    "stopword": "^0.1.13"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
