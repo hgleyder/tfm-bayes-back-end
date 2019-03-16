@@ -61,7 +61,7 @@ router.get('/create-dataset', function(req, res, next) {
 	createDatasetFile(
 		'./uploads/spamData.csv',
 		'/---/',
-		'./uploads/attributes2.txt',
+		'./uploads/attributes3.txt',
 	);
 	res.send('dataset file created');
 });

@@ -21,6 +21,8 @@ export const readAttributesFromFile = (attributesPath) => {
 
 export const createAttributesFile = (instancesPath, separator) => {
 	let words = [];
+	let counter = {};
+	const minCount = 20;
 	fs.readFile(instancesPath, 'utf8', (err, data) => {
 		if (err) throw err;
 		const instances = data.split('\n');
@@ -35,12 +37,17 @@ export const createAttributesFile = (instancesPath, separator) => {
 				attributes.filter((a) => a.length > 1).map((a) => {
 					if (words.indexOf(a) === -1) {
 						words.push(a);
+						counter[a] = 1;
+					} else {
+						counter[a] = counter[a] + 1;
 					}
 				});
 			}
 		});
-		const data2 = words.join('\n');
-		fs.writeFileSync(`uploads/attributes2.txt`, data2);
+		const data2 = Object.keys(counter)
+			.filter((word) => counter[word] >= minCount)
+			.join('\n');
+		fs.writeFileSync(`uploads/attributes3.txt`, data2);
 	});
 };
 
@@ -50,25 +57,27 @@ export const createDatasetFile = (instancesPath, separator, attributesPath) => {
 			if (err) throw err;
 			const instances = data.split('\n');
 			instances.map((i) => {
-				let attributes = i
-					.split(separator)[0]
-					.toLowerCase()
-					.match(/([a-z]+)/g);
-				let clas = i
-					.split(separator)[1]
-					.toLowerCase()
-					.match(/([a-z]+)/g)[0];
-				if (attributes && i.split(separator).length === 2) {
-					attributes = sw.removeStopwords(attributes, sw.en);
-					attributes = attributes.map((w) => stemmer(w));
-					const auxInstance = getInstanceFromAttributes(
-						attributes,
-						attributesData.split('\n'),
-					);
-					fs.appendFileSync(
-						`uploads/dataset.csv`,
-						auxInstance + ',' + clas + '\n',
-					);
+				if (i.split(separator)[1]) {
+					let attributes = i
+						.split(separator)[0]
+						.toLowerCase()
+						.match(/([a-z]+)/g);
+					let clas = i
+						.split(separator)[1]
+						.toLowerCase()
+						.match(/([a-z]+)/g)[0];
+					if (attributes && i.split(separator).length === 2) {
+						attributes = sw.removeStopwords(attributes, sw.en);
+						attributes = attributes.map((w) => stemmer(w));
+						const auxInstance = getInstanceFromAttributes(
+							attributes,
+							attributesData.split('\n'),
+						);
+						fs.appendFileSync(
+							`uploads/dataset.csv`,
+							auxInstance + ',' + clas + '\n',
+						);
+					}
 				}
 			});
 		});
