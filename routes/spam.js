@@ -10,6 +10,8 @@ import {
 	createDatasetFile,
 } from '../utils/preprocesing';
 
+import { createInitialDatasetFile } from '../utils/modelsCreation';
+
 var router = express.Router();
 
 /* Load model from json */
@@ -63,6 +65,12 @@ router.get('/create-dataset', function(req, res, next) {
 		'/---/',
 		'./uploads/attributes3.txt',
 	);
+	res.send('dataset file created');
+});
+
+// NEEEEEEEEEEEWWWWW FROM HERE
+router.get('/new', function(req, res, next) {
+	createInitialDatasetFile('1553159383082');
 	res.send('dataset file created');
 });
 

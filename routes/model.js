@@ -13,7 +13,6 @@ var router = express.Router();
 
 /* Cross Validation Metrics from data */
 router.post('/multinomial/create/cv', function(req, res, next) {
-	console.log(req);
 	var data = {
 		instances: req.body.data.instances,
 		classes: req.body.data.classes,
