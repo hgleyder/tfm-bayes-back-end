@@ -83,6 +83,8 @@ export const createModelData = (modelId, modelNumber) => {
 			metrics,
 			uid: modelId,
 			number: modelNumber,
+			instancesCount: instancesProcessed.map((r) => r.instance).length,
+			attributesCount: attrs.split('\n').length,
 		});
 
 		// ---------- SAVE MODEL -------------
@@ -118,13 +120,34 @@ export const createInitialDatasetFile = () => {
 				(err) => {
 					if (err) throw err;
 
-					createModelData(modelId, modelsCount + 1);
+					Database.child('verifiedMessages')
+						.once('value', (newMessages) => {
+							if (newMessages.val()) {
+								//Add Verified Messages to previous messages
+								Object.keys(newMessages.val()).map((msg) => {
+									fs.appendFileSync(
+										`./uploads/models/${modelId}/emails.csv`,
+										newMessages.val()[msg].content +
+											'/---/' +
+											newMessages.val()[msg]
+												.classification +
+											'\n',
+									);
+								});
+							}
+						})
+						.then(() => {
+							createModelData(modelId, modelsCount + 1);
 
-					// Set current model and current count
-					Database.child('modelData').set({
-						modelsCount: modelsCount + 1,
-						currentModel: modelId,
-					});
+							// Set current model and current count
+							Database.child('modelData').set({
+								modelsCount: modelsCount + 1,
+								currentModel: modelId,
+							});
+
+							//Remove verified Messages
+							Database.child('verifiedMessages').remove();
+						});
 				},
 			);
 		}
