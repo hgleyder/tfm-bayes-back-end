@@ -10,7 +10,7 @@ import {
 	createDatasetFile,
 } from '../utils/preprocesing';
 
-import { createInitialDatasetFile } from '../utils/modelsCreation';
+import { createInitialDatasetFile, deleteModel } from '../utils/modelsCreation';
 
 var router = express.Router();
 
@@ -69,9 +69,21 @@ router.get('/create-dataset', function(req, res, next) {
 });
 
 // NEEEEEEEEEEEWWWWW FROM HERE
-router.get('/new', function(req, res, next) {
-	createInitialDatasetFile('1553159383082');
+// router.get('/new', function(req, res, next) {
+// 	createInitialDatasetFile('1553159383082');
+// 	res.send('dataset file created');
+// });
+
+router.post('/new', function(req, res, next) {
+	var modelData = req.body.model;
+	createInitialDatasetFile(modelData);
 	res.send('dataset file created');
+});
+
+router.post('/remove', function(req, res, next) {
+	var modelData = req.body.data.model;
+	deleteModel(modelData);
+	res.send('model Deteled');
 });
 
 module.exports = router;
