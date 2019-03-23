@@ -97,13 +97,6 @@ export const createModelData = (modelId, modelNumber) => {
 	});
 };
 
-export const getInstanceFromAttributes = (wordsList, attributes) => {
-	const instance = attributes.map((a) =>
-		wordsList.reduce((total, x) => (x == a ? total + 1 : total), 0),
-	);
-	return instance;
-};
-
 export const createInitialDatasetFile = () => {
 	const modelId = new Date().getTime();
 	// Get current model and current count
@@ -171,8 +164,65 @@ export const deleteFolderRecursive = function(path) {
 };
 
 export const deleteModel = (uid) => {
-	console.log(uid);
 	Database.child('models/' + uid).remove();
 	const path = './uploads/models/' + uid;
 	deleteFolderRecursive(path);
 };
+
+export const createModel = (uid) => {
+	let rawdata = fs.readFileSync(`./uploads/models/${uid}/model.json`);
+	let data = JSON.parse(rawdata);
+	let model = new MultinomialNB(data);
+	return model;
+};
+
+export const preprocessInstances = (instances, modelUid) => {
+	let auxInstances = instances.map((inst) =>
+		removeStopwordsAndApplyStemmer(inst),
+	);
+	const attributes = readAttributesFromFile(
+		`./uploads/models/${modelUid}/attributes.txt`,
+	);
+
+	return auxInstances.map((instanceWordsList) =>
+		getInstanceFromAttributes(instanceWordsList, attributes),
+	);
+};
+
+export const setMessagesClassification = (
+	userUid,
+	messages,
+	classifications,
+) => {
+	messages.map((message, index) => {
+		Database.child(
+			`messages/${userUid}/received/${message.uid}/classification`,
+		).set(classifications[index]);
+		Database.child(
+			`messages/${userUid}/received/${message.uid}/originalClassification`,
+		).set(classifications[index]);
+	});
+};
+
+/////////// USEFULL FUNCTIONS ////////////////////////////////////////
+export const getInstanceFromAttributes = (wordsList, attributes) => {
+	const instance = attributes.map((a) =>
+		wordsList.reduce((total, x) => (x == a ? total + 1 : total), 0),
+	);
+	return instance;
+};
+
+export const removeStopwordsAndApplyStemmer = (text) => {
+	let newInstanceWords = text.toLowerCase().split(' ');
+	newInstanceWords = sw.removeStopwords(newInstanceWords, sw.en);
+	newInstanceWords = newInstanceWords.map((w) => stemmer(w));
+	return newInstanceWords;
+};
+
+export const readAttributesFromFile = (attributesPath) => {
+	let rawdata = fs.readFileSync(attributesPath, 'utf8');
+	const attributes = rawdata.split('\n');
+	attributes.splice(attributes.length - 1, 1);
+	return attributes;
+};
+////////////////////////////////////////////////////////////////////////
