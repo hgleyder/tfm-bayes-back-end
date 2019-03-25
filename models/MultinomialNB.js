@@ -37,9 +37,10 @@ export class MultinomialNB {
 		this.priorProbability = new Matrix(separateClass.length, 1);
 
 		for (var i = 0; i < separateClass.length; ++i) {
-			this.priorProbability[i][0] = Math.log(
+			this.priorProbability[i][0] = Math.log10(
 				separateClass[i].length / trainingSet.rows,
 			);
+			console.log(`${separateClass[i].length} -> ${trainingSet.rows}`);
 		}
 
 		var features = trainingSet.columns;
@@ -111,5 +112,5 @@ export class MultinomialNB {
 }
 
 function matrixLog(i, j) {
-	this[i][j] = Math.log(this[i][j]);
+	this[i][j] = Math.log10(this[i][j]);
 }

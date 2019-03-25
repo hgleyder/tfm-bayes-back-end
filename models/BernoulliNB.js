@@ -53,7 +53,7 @@ export class BernoulliNB {
 		this.priorProbability = new Matrix(separateClass.length, 1);
 
 		for (var i = 0; i < separateClass.length; ++i) {
-			this.priorProbability[i][0] = Math.log(
+			this.priorProbability[i][0] = Math.log10(
 				separateClass[i].length / auxTraniningSet.rows,
 			);
 		}
@@ -141,5 +141,5 @@ export class BernoulliNB {
 }
 
 function matrixLog(i, j) {
-	this[i][j] = Math.log(this[i][j]);
+	this[i][j] = Math.log10(this[i][j]);
 }

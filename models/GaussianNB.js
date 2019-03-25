@@ -46,7 +46,7 @@ export class GaussianNB {
 			var means = Stat.matrix.mean(separatedClasses[i]);
 			var std = Stat.matrix.standardDeviation(separatedClasses[i], means);
 
-			var logPriorProbability = Math.log(
+			var logPriorProbability = Math.log10(
 				separatedClasses[i].rows / trainingSet.rows,
 			);
 			calculateProbabilities[i] = new Array(means.length + 1);
@@ -170,5 +170,5 @@ function getCurrentClass(currentCase, mean, classes) {
  */
 function calculateLogProbability(value, mean, C1, C2) {
 	value = value - mean;
-	return Math.log(C1 * Math.exp(value * value / C2));
+	return Math.log10(C1 * Math.exp(value * value / C2));
 }
