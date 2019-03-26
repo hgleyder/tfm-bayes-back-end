@@ -10,7 +10,7 @@ import { createJsonFile } from '../utils/files';
 export const createManualModelData = () => {
 	let words = [];
 	let counter = {};
-	const minCount = 50;
+	const minCount = 80;
 	const modelId = new Date().getTime();
 	const instancesPath = './uploads/manual/emails.csv';
 	const separator = '/---/';
