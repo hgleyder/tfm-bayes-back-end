@@ -7,9 +7,15 @@ import {
 	createModel,
 	preprocessInstances,
 	setMessagesClassification,
+	createManualModelData,
 } from '../utils/modelsCreation';
 
 var router = express.Router();
+
+router.get('/new/manual', function(req, res, next) {
+	createManualModelData();
+	res.send('dataset file created');
+});
 
 // NEEEEEEEEEEEWWWWW FROM HERE
 

@@ -7,6 +7,93 @@ import { crossValidationModel } from '../models/utils/evaluation';
 import { MultinomialNB } from '../models';
 import { createJsonFile } from '../utils/files';
 
+export const createManualModelData = () => {
+	let words = [];
+	let counter = {};
+	const minCount = 50;
+	const modelId = new Date().getTime();
+	const instancesPath = './uploads/manual/emails.csv';
+	const separator = '/---/';
+	fs.mkdirSync(`./uploads/manual/models/${modelId}`);
+
+	// ----------- CREATE ATTRIBUTES FILE -----------------
+	fs.readFile(instancesPath, 'utf8', (err, data) => {
+		if (err) throw err;
+		const instances = data.split('\n');
+		instances.map((i) => {
+			let attributes = i
+				.split(separator)[0]
+				.toLowerCase()
+				.match(/([a-z]+)/g);
+			if (attributes) {
+				attributes = sw.removeStopwords(attributes, sw.en);
+				attributes = attributes.map((w) => stemmer(w));
+				attributes.filter((a) => a.length > 1).map((a) => {
+					if (words.indexOf(a) === -1) {
+						words.push(a);
+						counter[a] = 1;
+					} else {
+						counter[a] = counter[a] + 1;
+					}
+				});
+			}
+		});
+		const attrs = Object.keys(counter)
+			.filter((word) => counter[word] >= minCount)
+			.join('\n');
+		fs.writeFileSync(
+			`./uploads/manual/models/${modelId}/attributes.txt`,
+			attrs,
+		);
+
+		// ----------- CREATE DATASET FILE -----------------
+		const instancesProcessed = [];
+		instances.map((i) => {
+			if (i.split(separator)[1]) {
+				let attributes = i
+					.split(separator)[0]
+					.toLowerCase()
+					.match(/([a-z]+)/g);
+				let clas = i
+					.split(separator)[1]
+					.toLowerCase()
+					.match(/([a-z]+)/g)[0];
+				if (attributes && i.split(separator).length === 2) {
+					attributes = sw.removeStopwords(attributes, sw.en);
+					attributes = attributes.map((w) => stemmer(w));
+					const auxInstance = getInstanceFromAttributes(
+						attributes,
+						attrs.split('\n'),
+					);
+					instancesProcessed.push({
+						instance: auxInstance,
+						class: clas,
+					});
+					fs.appendFileSync(
+						`./uploads/manual/models/${modelId}/dataset.csv`,
+						auxInstance + ',' + clas + '\n',
+					);
+				}
+			}
+		});
+
+		// ----------- CREATE MODEL METRICS --------------------
+		var metrics = crossValidationModel(
+			MultinomialNB,
+			instancesProcessed.map((r) => r.instance),
+			instancesProcessed.map((r) => r.class),
+		);
+
+		// ---------- SAVE MODEL -------------
+		const model = new MultinomialNB();
+		model.train(
+			instancesProcessed.map((r) => r.instance),
+			instancesProcessed.map((r) => r.class),
+		);
+		createJsonFile(model, `./uploads/manual/models/${modelId}`, 'model');
+	});
+};
+
 export const createModelData = (modelId, modelNumber) => {
 	let words = [];
 	let counter = {};

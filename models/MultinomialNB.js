@@ -40,7 +40,6 @@ export class MultinomialNB {
 			this.priorProbability[i][0] = Math.log10(
 				separateClass[i].length / trainingSet.rows,
 			);
-			console.log(`${separateClass[i].length} -> ${trainingSet.rows}`);
 		}
 
 		var features = trainingSet.columns;
