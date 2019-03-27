@@ -6,7 +6,7 @@ import { getClassesList } from './utils/evaluation';
 
 export class GaussianNB {
 	/**
-   * Constructor for the Gaussian Naive Bayes classifier, the parameters here is just for loading purposes.
+   * Gaussian Naive Bayes classifier constructor
    * @constructor
    * @param {boolean} reload
    * @param {object} model
@@ -14,23 +14,18 @@ export class GaussianNB {
 	constructor(reload, model) {
 		if (reload) {
 			this.means = model.means;
-			this.calculateProbabilities = model.calculateProbabilities;
+			this.jointProbabilities = model.jointProbabilities;
 			this.classes = model.classes;
 		}
 	}
 
 	/**
-   * Function that trains the classifier with a matrix that represents the training set and an array that
-   * represents the label of each row in the training set. the labels must be numbers between 0 to n-1 where
-   * n represents the number of classes.
-   *
-   * WARNING: in the case that one class, all the cases in one or more features have the same value, the
-   * Naive Bayes classifier will not work well.
+   * Function that trains the classifier model using 2 matrix one related with the attributes and the other
+   * related with the classes of those instances
    * @param {Matrix|Array} trainingSet
    * @param {Matrix|Array} trainingLabels
    */
 	train(trainingSet, trainingLabels) {
-		var C1 = Math.sqrt(2 * Math.PI); // constant to precalculate the squared root
 		trainingSet = Matrix.checkMatrix(trainingSet);
 
 		if (trainingSet.rows !== trainingLabels.length) {
@@ -40,42 +35,41 @@ export class GaussianNB {
 		}
 
 		var separatedClasses = separateClasses(trainingSet, trainingLabels);
-		var calculateProbabilities = new Array(separatedClasses.length);
+		var jointProbabilities = new Array(separatedClasses.length);
+
 		this.means = new Array(separatedClasses.length);
 		for (var i = 0; i < separatedClasses.length; ++i) {
 			var means = Stat.matrix.mean(separatedClasses[i]);
-			var std = Stat.matrix.standardDeviation(separatedClasses[i], means);
-
+			var std = calculateStandardDesviations(means, separatedClasses[i]);
 			var logPriorProbability = Math.log10(
 				separatedClasses[i].rows / trainingSet.rows,
 			);
-			calculateProbabilities[i] = new Array(means.length + 1);
+			jointProbabilities[i] = new Array(means.length + 1);
 
-			calculateProbabilities[i][0] = logPriorProbability;
+			jointProbabilities[i][0] = logPriorProbability;
 			for (var j = 1; j < means.length + 1; ++j) {
 				var currentStd = std[j - 1];
-				calculateProbabilities[i][j] = [
-					1 / (C1 * currentStd),
+				jointProbabilities[i][j] = [
+					1 / (Math.sqrt(2 * Math.PI) * currentStd),
 					-2 * currentStd * currentStd,
 				];
 			}
-
 			this.means[i] = means;
 		}
 
-		this.calculateProbabilities = calculateProbabilities;
+		this.jointProbabilities = jointProbabilities;
 
 		this.classes = getClassesList(trainingLabels);
 	}
 
 	/**
-   * function that predicts each row of the dataset (must be a matrix).
+   * function that predicts a dataset.
    *
    * @param {Matrix|Array} dataset
    * @return {Array}
    */
 	predict(dataset) {
-		if (dataset[0].length === this.calculateProbabilities[0].length) {
+		if (dataset[0].length === this.jointProbabilities[0].length) {
 			throw new RangeError(
 				'the dataset must have the same features as the training set',
 			);
@@ -87,7 +81,7 @@ export class GaussianNB {
 			predictions[i] = getCurrentClass(
 				dataset[i],
 				this.means,
-				this.calculateProbabilities,
+				this.jointProbabilities,
 			);
 		}
 
@@ -102,7 +96,7 @@ export class GaussianNB {
 		return {
 			modelName: 'GaussianNB',
 			means: this.means,
-			calculateProbabilities: this.calculateProbabilities,
+			jointProbabilities: this.jointProbabilities,
 			classes: this.classes,
 		};
 	}
@@ -130,7 +124,7 @@ export class GaussianNB {
  *
  * @param {Array} currentCase
  * @param {Array} mean - Precalculated means of each class trained
- * @param {Array} classes - Precalculated value of each class (Prior probability and probability function of each feature)
+ * @param {Array} classes - Precalculated value of each class
  * @return {number}
  */
 function getCurrentClass(currentCase, mean, classes) {
@@ -139,7 +133,8 @@ function getCurrentClass(currentCase, mean, classes) {
 
 	// going through all precalculated values for the classes
 	for (var i = 0; i < classes.length; ++i) {
-		var currentProbability = classes[i][0]; // initialize with the prior probability
+		// intitialize current as the PriorProbability
+		var currentProbability = classes[i][0];
 		for (var j = 1; j < classes[0][1].length + 1; ++j) {
 			currentProbability += calculateLogProbability(
 				currentCase[j - 1],
@@ -149,7 +144,9 @@ function getCurrentClass(currentCase, mean, classes) {
 			);
 		}
 
-		currentProbability = Math.exp(currentProbability);
+		// get probability value
+		currentProbability = Math.pow(10, currentProbability);
+
 		if (currentProbability > maxProbability) {
 			maxProbability = currentProbability;
 			predictedClass = i;
@@ -171,4 +168,25 @@ function getCurrentClass(currentCase, mean, classes) {
 function calculateLogProbability(value, mean, C1, C2) {
 	value = value - mean;
 	return Math.log10(C1 * Math.exp(value * value / C2));
+}
+
+/**
+ * @private
+ * function that calculates the STD.
+ * @param {Array} means - means of the features for the given class.
+ * @param {Matrix} values - values of the features.
+ * @return {Array}
+ */
+function calculateStandardDesviations(means, values) {
+	let std = [];
+	let value;
+	for (let i = 0; i < means.length; i++) {
+		value = 0;
+		for (let j = 0; j < values.length; j++) {
+			value += Math.pow(Math.abs(values[j][i] - means[i]), 2);
+		}
+		value = value / values.length;
+		std.push(value);
+	}
+	return std;
 }
