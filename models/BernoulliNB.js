@@ -93,7 +93,6 @@ export class BernoulliNB {
 		for (var i = 0; i < auxDataset.rows; ++i) {
 			var currentElement = auxDataset.getRowVector(i);
 
-			console.log(this.conditionalProbability);
 			let auxProb = [];
 			for (let i = 0; i < this.conditionalProbability.length; i++) {
 				auxProb.push([]);
@@ -125,7 +124,6 @@ export class BernoulliNB {
 				.maxIndex()[0];
 		}
 
-		console.log(predictions);
 		return predictions;
 	}
 
