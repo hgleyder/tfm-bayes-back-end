@@ -5,9 +5,9 @@ import { getClassesList } from './utils/evaluation';
 
 export class BernoulliNB {
 	/**
-   * Constructor for Bernoulli Naive Bayes, the model parameter is for load purposes.
+   * Constructor for Bernoulli Naive Bayes.
    * @constructor
-   * @param {object} model - for load purposes.
+   * @param {object} model
    */
 	constructor(model) {
 		if (model) {
@@ -49,38 +49,30 @@ export class BernoulliNB {
 			});
 		});
 
-		var separateClass = separateClasses(auxTraniningSet, trainingLabels);
+		var separateClass = separateClasses(trainingSet, trainingLabels);
 		this.priorProbability = new Matrix(separateClass.length, 1);
 
 		for (var i = 0; i < separateClass.length; ++i) {
 			this.priorProbability[i][0] = Math.log10(
-				separateClass[i].length / auxTraniningSet.rows,
+				separateClass[i].length / trainingSet.rows,
 			);
 		}
 
-		var features = auxTraniningSet.columns;
+		var features = trainingSet.columns;
 		this.conditionalProbability = new Matrix(
 			separateClass.length,
 			features,
 		);
 		for (i = 0; i < separateClass.length; ++i) {
 			var classValues = Matrix.checkMatrix(separateClass[i]);
-			const alpha = 1;
-			const smoothing = 2 * alpha;
-			let totalAttrPerClass = new Array(features).fill(0);
-			for (let index = 0; index < features; index++) {
-				classValues.map((instance) => {
-					totalAttrPerClass[index] += instance[index];
-				});
-				totalAttrPerClass[index] += alpha;
-			}
-			var divisor = classValues.length + smoothing;
-			const result = [];
-			totalAttrPerClass.map((val) => {
-				result.push(parseFloat(val / divisor));
-			});
-			this.conditionalProbability.setRow(i, result);
+			var total = classValues.sum();
+			var divisor = total + features;
+			this.conditionalProbability.setRow(
+				i,
+				classValues.sum('column').add(2).div(divisor),
+			);
 		}
+
 		this.classes = getClassesList(trainingLabels);
 	}
 
@@ -100,14 +92,40 @@ export class BernoulliNB {
 		var predictions = new Array(auxDataset.rows);
 		for (var i = 0; i < auxDataset.rows; ++i) {
 			var currentElement = auxDataset.getRowVector(i);
+
+			console.log(this.conditionalProbability);
+			let auxProb = [];
+			for (let i = 0; i < this.conditionalProbability.length; i++) {
+				auxProb.push([]);
+				for (
+					let j = 0;
+					j < this.conditionalProbability[i].length;
+					j++
+				) {
+					auxProb[i].push(1 - this.conditionalProbability[i][j]);
+				}
+			}
+			auxProb = new Matrix(auxProb);
+
+			var inverseCurrent = [];
+			for (let index = 0; index < currentElement[0].length; index++) {
+				let val = currentElement[0][index];
+				inverseCurrent.push(
+					Math.abs(parseInt(currentElement[0][index]) - 1),
+				);
+			}
+			inverseCurrent = new Matrix([ inverseCurrent ]);
+
 			predictions[i] = this.conditionalProbability
-				.clone()
+				.apply(matrixLog)
 				.mulRowVector(currentElement)
+				.add(auxProb.apply(matrixLog).mulRowVector(inverseCurrent))
 				.sum('row')
 				.add(this.priorProbability)
 				.maxIndex()[0];
 		}
 
+		console.log(predictions);
 		return predictions;
 	}
 
