@@ -27,15 +27,10 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(function(req, res, next) {
-	var allowedOrigins = [
-		frontEndUrl,
-		'http://localhost:3000',
-		'https://nbmail.me',
-	];
-	var origin = req.headers.origin;
-	if (allowedOrigins.indexOf(origin) > -1) {
-		res.setHeader('Access-Control-Allow-Origin', origin);
-	}
+	// Website you wish to allow to connect
+	res.setHeader('Access-Control-Allow-Origin', frontEndUrl);
+	// res.setHeader('Access-Control-Allow-Origin', 'https://localhost:5000');
+	// res.setHeader('Access-Control-Allow-Origin', 'https://nbmail.me');
 
 	// Request methods you wish to allow
 	res.setHeader(
