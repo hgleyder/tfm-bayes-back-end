@@ -29,7 +29,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(function(req, res, next) {
 	var allowedOrigins = [
 		frontEndUrl,
-		'https://localhost:5000',
+		'http://localhost:3000',
 		'https://nbmail.me',
 	];
 	var origin = req.headers.origin;
