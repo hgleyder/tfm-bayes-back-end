@@ -254,9 +254,10 @@ export const createModelData = (modelId, modelNumber) => {
 				});
 			}
 		});
-		const attrs = Object.keys(counter)
+		let attrs = Object.keys(counter)
 			.filter((word) => counter[word] >= minCount)
 			.join('\n');
+		attrs += '\n';
 		fs.writeFileSync(`./uploads/models/${modelId}/attributes.txt`, attrs);
 
 		// ----------- CREATE DATASET FILE -----------------
