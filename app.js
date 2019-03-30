@@ -28,8 +28,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(function(req, res, next) {
 	// Website you wish to allow to connect
-	res.setHeader('Access-Control-Allow-Origin', frontEndUrl);
-	// res.setHeader('Access-Control-Allow-Origin', 'https://localhost:5000');
+	// res.setHeader('Access-Control-Allow-Origin', frontEndUrl);
+	res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3002');
 	// res.setHeader('Access-Control-Allow-Origin', 'https://nbmail.me');
 
 	// Request methods you wish to allow

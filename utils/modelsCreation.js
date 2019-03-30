@@ -21,6 +21,11 @@ export const createManualModelData = () => {
 		if (err) throw err;
 		const instances = data.split('\n');
 		instances.map((i) => {
+			// Replace email addresses with 'emailaddr'
+			// Replace URLs with 'httpaddr'
+			// Replace money symbols with 'moneysymb'
+			// Replace phone numbers with 'phonenumbr'
+			// Replace numbers with 'numbr'
 			let attributes = i
 				.split(separator)[0]
 				.toLowerCase()
@@ -37,7 +42,80 @@ export const createManualModelData = () => {
 					}
 				});
 			}
+
+			// emails
+			attributes = i
+				.split(separator)[0]
+				.toLowerCase()
+				.match(
+					/[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*/g,
+				);
+			if (attributes) {
+				if (words.indexOf('emailaddr') === -1) {
+					words.push('emailaddr');
+					counter['emailaddr'] = 1;
+				} else {
+					counter['emailaddr'] = counter['emailaddr'] + 1;
+				}
+			}
+
+			// urls
+			attributes = i
+				.split(separator)[0]
+				.toLowerCase()
+				.match(/(((https?:\/\/)|(www\.))[^\s]+)/g);
+			if (attributes) {
+				if (words.indexOf('urladdrs') === -1) {
+					words.push('urladdrs');
+					counter['urladdrs'] = 1;
+				} else {
+					counter['urladdrs'] = counter['urladdrs'] + 1;
+				}
+			}
+
+			// phone numbers
+			attributes = i
+				.split(separator)[0]
+				.toLowerCase()
+				.match(/[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*/g);
+			if (attributes) {
+				if (words.indexOf('phonenumbr') === -1) {
+					words.push('phonenumbr');
+					counter['phonenumbr'] = 1;
+				} else {
+					counter['phonenumbr'] = counter['phonenumbr'] + 1;
+				}
+			}
+
+			// numbers
+			attributes = i
+				.split(separator)[0]
+				.toLowerCase()
+				.match(/-?\d+\.?\d*$/g);
+			if (attributes) {
+				if (words.indexOf('numbr') === -1) {
+					words.push('numbr');
+					counter['numbr'] = 1;
+				} else {
+					counter['numbr'] = counter['numbr'] + 1;
+				}
+			}
+
+			// currency symbol
+			attributes = i
+				.split(separator)[0]
+				.toLowerCase()
+				.match(/(kr|$|£|€)/g);
+			if (attributes) {
+				if (words.indexOf('currencysymbol') === -1) {
+					words.push('currencysymbol');
+					counter['currencysymbol'] = 1;
+				} else {
+					counter['currencysymbol'] = counter['currencysymbol'] + 1;
+				}
+			}
 		});
+
 		const attrs = Object.keys(counter)
 			.filter((word) => counter[word] >= minCount)
 			.join('\n');
@@ -54,11 +132,64 @@ export const createManualModelData = () => {
 					.split(separator)[0]
 					.toLowerCase()
 					.match(/([a-z]+)/g);
+
 				let clas = i
 					.split(separator)[1]
 					.toLowerCase()
 					.match(/([a-z]+)/g)[0];
 				if (attributes && i.split(separator).length === 2) {
+					// emails
+					let aux =
+						i
+							.split(separator)[0]
+							.toLowerCase()
+							.match(
+								/[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*/g,
+							) || [];
+					aux.map((word) => {
+						attributes.push('emailaddr');
+					});
+
+					// urls
+					aux =
+						i
+							.split(separator)[0]
+							.toLowerCase()
+							.match(/(((https?:\/\/)|(www\.))[^\s]+)/g) || [];
+					aux.map((word) => {
+						attributes.push('urladdrs');
+					});
+
+					// phone numbers
+					aux =
+						i
+							.split(separator)[0]
+							.toLowerCase()
+							.match(
+								/[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*/g,
+							) || [];
+					aux.map((word) => {
+						attributes.push('phonenumbr');
+					});
+
+					// numbers
+					aux =
+						i
+							.split(separator)[0]
+							.toLowerCase()
+							.match(/-?\d+\.?\d*$/g) || [];
+					aux.map((word) => {
+						attributes.push('numbr');
+					});
+
+					// currency symbol
+					aux = i
+						.split(separator)[0]
+						.toLowerCase()
+						.match(/(kr|$|£|€)/g);
+					aux.map((word) => {
+						attributes.push('currencysymbol');
+					});
 					attributes = sw.removeStopwords(attributes, sw.en);
 					attributes = attributes.map((w) => stemmer(w));
 					const auxInstance = getInstanceFromAttributes(
