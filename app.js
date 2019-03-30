@@ -35,10 +35,11 @@ app.use(function(req, res, next) {
 		'http://127.0.0.1:3000',
 		'https://www.nbmail.me',
 
-                'https://bayessian.nbmail.me',
-                'http://http://68.183.165.156:4000',
-                'http://127.0.0.1:4000',
-                'https://www.bayessian.nbmail.me',
+		'https://bayessian.nbmail.me',
+		'http://http://68.183.165.156:4000',
+		'http://127.0.0.1:4000',
+		'http://127.0.0.1:3002',
+		'https://www.bayessian.nbmail.me',
 	];
 	var origin = req.headers.origin;
 	if (allowedOrigins.indexOf(origin) > -1) {
