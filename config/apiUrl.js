@@ -1,2 +1,2 @@
-const API_URL = `http://localhost:3001`;
+const API_URL = `https://backend.nbmail.me/`;
 export default API_URL;
