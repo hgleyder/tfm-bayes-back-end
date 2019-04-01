@@ -10,7 +10,7 @@ import { createJsonFile } from '../utils/files';
 export const createManualModelData = () => {
 	let words = [];
 	let counter = {};
-	const minCount = 80;
+	const minCount = 100;
 	const modelId = new Date().getTime();
 	const instancesPath = './uploads/manual/emails.csv';
 	const separator = '/---/';
@@ -254,6 +254,73 @@ export const createModelData = (modelId, modelNumber) => {
 				});
 			}
 		});
+
+		// emails
+		attributes = i
+			.split(separator)[0]
+			.toLowerCase()
+			.match(
+				/[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*/g,
+			);
+		if (attributes) {
+			if (words.indexOf('emailaddr') === -1) {
+				words.push('emailaddr');
+				counter['emailaddr'] = 1;
+			} else {
+				counter['emailaddr'] = counter['emailaddr'] + 1;
+			}
+		}
+
+		// urls
+		attributes = i
+			.split(separator)[0]
+			.toLowerCase()
+			.match(/(((https?:\/\/)|(www\.))[^\s]+)/g);
+		if (attributes) {
+			if (words.indexOf('urladdrs') === -1) {
+				words.push('urladdrs');
+				counter['urladdrs'] = 1;
+			} else {
+				counter['urladdrs'] = counter['urladdrs'] + 1;
+			}
+		}
+
+		// phone numbers
+		attributes = i
+			.split(separator)[0]
+			.toLowerCase()
+			.match(/[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*/g);
+		if (attributes) {
+			if (words.indexOf('phonenumbr') === -1) {
+				words.push('phonenumbr');
+				counter['phonenumbr'] = 1;
+			} else {
+				counter['phonenumbr'] = counter['phonenumbr'] + 1;
+			}
+		}
+
+		// numbers
+		attributes = i.split(separator)[0].toLowerCase().match(/-?\d+\.?\d*$/g);
+		if (attributes) {
+			if (words.indexOf('numbr') === -1) {
+				words.push('numbr');
+				counter['numbr'] = 1;
+			} else {
+				counter['numbr'] = counter['numbr'] + 1;
+			}
+		}
+
+		// currency symbol
+		attributes = i.split(separator)[0].toLowerCase().match(/(kr|$|£|€)/g);
+		if (attributes) {
+			if (words.indexOf('currencysymbol') === -1) {
+				words.push('currencysymbol');
+				counter['currencysymbol'] = 1;
+			} else {
+				counter['currencysymbol'] = counter['currencysymbol'] + 1;
+			}
+		}
+
 		let attrs = Object.keys(counter)
 			.filter((word) => counter[word] >= minCount)
 			.join('\n');
@@ -277,6 +344,59 @@ export const createModelData = (modelId, modelNumber) => {
 				if (attributes && i.split(separator).length === 2) {
 					attributes = sw.removeStopwords(attributes, sw.en);
 					attributes = attributes.map((w) => stemmer(w));
+					// emails
+					let aux =
+						i
+							.split(separator)[0]
+							.toLowerCase()
+							.match(
+								/[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*/g,
+							) || [];
+					aux.map((word) => {
+						attributes.push('emailaddr');
+					});
+
+					// urls
+					aux =
+						i
+							.split(separator)[0]
+							.toLowerCase()
+							.match(/(((https?:\/\/)|(www\.))[^\s]+)/g) || [];
+					aux.map((word) => {
+						attributes.push('urladdrs');
+					});
+
+					// phone numbers
+					aux =
+						i
+							.split(separator)[0]
+							.toLowerCase()
+							.match(
+								/[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*/g,
+							) || [];
+					aux.map((word) => {
+						attributes.push('phonenumbr');
+					});
+
+					// numbers
+					aux =
+						i
+							.split(separator)[0]
+							.toLowerCase()
+							.match(/-?\d+\.?\d*$/g) || [];
+					aux.map((word) => {
+						attributes.push('numbr');
+					});
+
+					// currency symbol
+					aux = i
+						.split(separator)[0]
+						.toLowerCase()
+						.match(/(kr|$|£|€)/g);
+					aux.map((word) => {
+						attributes.push('currencysymbol');
+					});
+
 					const auxInstance = getInstanceFromAttributes(
 						attributes,
 						attrs.split('\n'),
@@ -446,4 +566,5 @@ export const readAttributesFromFile = (attributesPath) => {
 	attributes.splice(attributes.length - 1, 1);
 	return attributes;
 };
+
 ////////////////////////////////////////////////////////////////////////
