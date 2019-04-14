@@ -3,14 +3,17 @@ import fs from 'fs';
 import { Database } from '../config/firebase';
 const sw = require('stopword');
 import stemmer from 'stemmer';
-import { crossValidationModel } from '../models/utils/evaluation';
+import {
+	crossValidationModel,
+	crossValidationModelSpam,
+} from '../models/utils/evaluation';
 import { MultinomialNB } from '../models';
 import { createJsonFile } from '../utils/files';
 
 export const createManualModelData = () => {
 	let words = [];
 	let wordsCounter = {};
-	const minCount = 40;
+	const minCount = 100;
 	const modelId = new Date().getTime();
 	const instancesPath = './uploads/manual/emails.csv';
 	const separator = '/---/';
@@ -236,7 +239,7 @@ export const createManualModelData = () => {
 export const createModelData = (modelId, modelNumber) => {
 	let words = [];
 	let wordsCounter = {};
-	const minCount = 40;
+	const minCount = 100;
 	const instancesPath = './uploads/models/' + modelId + '/emails.csv';
 	const separator = '/---/';
 
@@ -429,7 +432,7 @@ export const createModelData = (modelId, modelNumber) => {
 		});
 
 		// ----------- CREATE MODEL METRICS --------------------
-		var metrics = crossValidationModel(
+		var metrics = crossValidationModelSpam(
 			MultinomialNB,
 			instancesProcessed.map((r) => r.instance),
 			instancesProcessed.map((r) => r.class),
@@ -614,11 +617,11 @@ export const calculateTfIdf = (
 	docsCount,
 ) => {
 	// WITH TF-DIF
-	const TF = Math.log10(wordCount + 1);
-	const IDF = Math.log10(docsCount / docsWithWord);
-	return TF * IDF;
+	// const TF = wordCount / totalDocWords;
+	// const IDF = Math.log10(docsCount / docsWithWord) + 1;
+	// return TF * IDF;
 
 	// WITHOUT TF-IDF
-	// return wordCount;
+	return wordCount;
 };
 ////////////////////////////////////////////////////////////////////////

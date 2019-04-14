@@ -81,6 +81,21 @@ export class MultinomialNB {
 		return predictions;
 	}
 
+	predict_proba(dataset) {
+		dataset = Matrix.checkMatrix(dataset);
+		var predictions = new Array(dataset.rows);
+		for (var i = 0; i < dataset.rows; ++i) {
+			var currentElement = dataset.getRowVector(i);
+			predictions[i] = this.conditionalProbability
+				.clone()
+				.mulRowVector(currentElement)
+				.sum('row')
+				.add(this.priorProbability);
+		}
+
+		return predictions;
+	}
+
 	/**
    * Function that saves the current model.
    * @return {object} - model in JSON format.
