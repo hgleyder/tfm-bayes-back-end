@@ -9,8 +9,8 @@ import { createJsonFile } from '../utils/files';
 
 export const createManualModelData = () => {
 	let words = [];
-	let counter = {};
-	const minCount = 80;
+	let wordsCounter = {};
+	const minCount = 40;
 	const modelId = new Date().getTime();
 	const instancesPath = './uploads/manual/emails.csv';
 	const separator = '/---/';
@@ -36,9 +36,9 @@ export const createManualModelData = () => {
 				attributes.filter((a) => a.length > 1).map((a) => {
 					if (words.indexOf(a) === -1) {
 						words.push(a);
-						counter[a] = 1;
+						wordsCounter[a] = 1;
 					} else {
-						counter[a] = counter[a] + 1;
+						wordsCounter[a] = wordsCounter[a] + 1;
 					}
 				});
 			}
@@ -53,9 +53,9 @@ export const createManualModelData = () => {
 			if (attributes) {
 				if (words.indexOf('emailaddr') === -1) {
 					words.push('emailaddr');
-					counter['emailaddr'] = 1;
+					wordsCounter['emailaddr'] = 1;
 				} else {
-					counter['emailaddr'] = counter['emailaddr'] + 1;
+					wordsCounter['emailaddr'] = wordsCounter['emailaddr'] + 1;
 				}
 			}
 
@@ -67,9 +67,9 @@ export const createManualModelData = () => {
 			if (attributes) {
 				if (words.indexOf('urladdrs') === -1) {
 					words.push('urladdrs');
-					counter['urladdrs'] = 1;
+					wordsCounter['urladdrs'] = 1;
 				} else {
-					counter['urladdrs'] = counter['urladdrs'] + 1;
+					wordsCounter['urladdrs'] = wordsCounter['urladdrs'] + 1;
 				}
 			}
 
@@ -81,9 +81,9 @@ export const createManualModelData = () => {
 			if (attributes) {
 				if (words.indexOf('phonenumbr') === -1) {
 					words.push('phonenumbr');
-					counter['phonenumbr'] = 1;
+					wordsCounter['phonenumbr'] = 1;
 				} else {
-					counter['phonenumbr'] = counter['phonenumbr'] + 1;
+					wordsCounter['phonenumbr'] = wordsCounter['phonenumbr'] + 1;
 				}
 			}
 
@@ -95,9 +95,9 @@ export const createManualModelData = () => {
 			if (attributes) {
 				if (words.indexOf('numbr') === -1) {
 					words.push('numbr');
-					counter['numbr'] = 1;
+					wordsCounter['numbr'] = 1;
 				} else {
-					counter['numbr'] = counter['numbr'] + 1;
+					wordsCounter['numbr'] = wordsCounter['numbr'] + 1;
 				}
 			}
 
@@ -109,19 +109,25 @@ export const createManualModelData = () => {
 			if (attributes) {
 				if (words.indexOf('currencysymbol') === -1) {
 					words.push('currencysymbol');
-					counter['currencysymbol'] = 1;
+					wordsCounter['currencysymbol'] = 1;
 				} else {
-					counter['currencysymbol'] = counter['currencysymbol'] + 1;
+					wordsCounter['currencysymbol'] =
+						wordsCounter['currencysymbol'] + 1;
 				}
 			}
 		});
 
-		const attrs = Object.keys(counter)
-			.filter((word) => counter[word] >= minCount)
+		const importantAttributes = Object.keys(wordsCounter).filter(
+			(word) => wordsCounter[word] >= minCount,
+		);
+
+		const attrFrequencies = importantAttributes
+			.map((attr) => `${attr},${wordsCounter[attr]}`)
 			.join('\n');
+
 		fs.writeFileSync(
 			`./uploads/manual/models/${modelId}/attributes.txt`,
-			attrs,
+			attrFrequencies,
 		);
 
 		// ----------- CREATE DATASET FILE -----------------
@@ -194,7 +200,9 @@ export const createManualModelData = () => {
 					attributes = attributes.map((w) => stemmer(w));
 					const auxInstance = getInstanceFromAttributes(
 						attributes,
-						attrs.split('\n'),
+						importantAttributes,
+						wordsCounter,
+						instances.length,
 					);
 					instancesProcessed.push({
 						instance: auxInstance,
@@ -227,7 +235,7 @@ export const createManualModelData = () => {
 
 export const createModelData = (modelId, modelNumber) => {
 	let words = [];
-	let counter = {};
+	let wordsCounter = {};
 	const minCount = 20;
 	const instancesPath = './uploads/models/' + modelId + '/emails.csv';
 	const separator = '/---/';
@@ -247,15 +255,15 @@ export const createModelData = (modelId, modelNumber) => {
 				attributes.filter((a) => a.length > 1).map((a) => {
 					if (words.indexOf(a) === -1) {
 						words.push(a);
-						counter[a] = 1;
+						wordsCounter[a] = 1;
 					} else {
-						counter[a] = counter[a] + 1;
+						wordsCounter[a] = wordsCounter[a] + 1;
 					}
 				});
 			}
 		});
-		let attrs = Object.keys(counter)
-			.filter((word) => counter[word] >= minCount)
+		let attrs = Object.keys(wordsCounter)
+			.filter((word) => wordsCounter[word] >= minCount)
 			.join('\n');
 		attrs += '\n';
 		fs.writeFileSync(`./uploads/models/${modelId}/attributes.txt`, attrs);
@@ -399,12 +407,16 @@ export const preprocessInstances = (instances, modelUid) => {
 	let auxInstances = instances.map((inst) =>
 		removeStopwordsAndApplyStemmer(inst),
 	);
+	const emailsCount = fs
+		.readFileSync(`/uploads/models/${modelUid}/emails.csv`, 'utf8')
+		.split('\n').length;
+
 	const attributes = readAttributesFromFile(
 		`./uploads/models/${modelUid}/attributes.txt`,
 	);
 
 	return auxInstances.map((instanceWordsList) =>
-		getInstanceFromAttributes(instanceWordsList, attributes),
+		getInstanceFromAttributes(instanceWordsList, attributes, emailsCount),
 	);
 };
 
@@ -424,10 +436,26 @@ export const setMessagesClassification = (
 };
 
 /////////// USEFULL FUNCTIONS ////////////////////////////////////////
-export const getInstanceFromAttributes = (wordsList, attributes) => {
-	const instance = attributes.map((a) =>
-		wordsList.reduce((total, x) => (x == a ? total + 1 : total), 0),
-	);
+export const getInstanceFromAttributes = (
+	wordsList,
+	attributes,
+	wordsCounter,
+	emailsCount,
+) => {
+	const docWordsCount = wordsList.length;
+	const instance = attributes.map((a) => {
+		const attrDocCount = wordsList.reduce(
+			(total, x) => (x == a ? total + 1 : total),
+			0,
+		);
+
+		return calculateTfIdf(
+			docWordsCount,
+			attrDocCount,
+			wordsCounter[a],
+			emailsCount,
+		);
+	});
 	return instance;
 };
 
@@ -442,6 +470,26 @@ export const readAttributesFromFile = (attributesPath) => {
 	let rawdata = fs.readFileSync(attributesPath, 'utf8');
 	const attributes = rawdata.split('\n');
 	attributes.splice(attributes.length - 1, 1);
+	const aux = {};
+	attributes.map((attribute) => {
+		const info = attribute.split(',');
+		aux[info[0]] = parseInt(info[1]);
+	});
 	return attributes;
+};
+
+export const calculateTfIdf = (
+	totalDocWords,
+	wordCount,
+	docsWithWord,
+	docsCount,
+) => {
+	// WITH TF-DIF
+	const TF = Math.log10(wordCount + 1);
+	const IDF = Math.log10(docsCount / docsWithWord);
+	return TF * IDF;
+
+	// WITHOUT TF-IDF
+	// return wordCount;
 };
 ////////////////////////////////////////////////////////////////////////
