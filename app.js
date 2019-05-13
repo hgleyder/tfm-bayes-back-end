@@ -5,9 +5,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const bodyParser = require('body-parser');
 
-var indexRouter = require('./routes/index');
 var modelRouter = require('./routes/model');
-var filesRouter = require('./routes/files');
 var spamRouter = require('./routes/spam');
 
 import frontEndUrl from './config/frontEndUrl';
@@ -61,9 +59,7 @@ app.use(function(req, res, next) {
 	next();
 });
 
-app.use('/', indexRouter);
 app.use('/model', modelRouter);
-app.use('/files', filesRouter);
 app.use('/spam', spamRouter);
 
 // catch 404 and forward to error handler

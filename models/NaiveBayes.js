@@ -1,14 +1,9 @@
 import Matrix from 'ml-matrix';
 
-import { separateClasses } from './utils/models';
+import { getValuesByClasses } from './utils/methods';
 import { getClassesList } from './utils/evaluation';
 
 export class NaiveBayes {
-	/**
-   * Constructor for Naive Bayes, the model parameter is for load purposes.
-   * @constructor
-   * @param {object} model - for load purposes.
-   */
 	constructor(model) {
 		if (model) {
 			this.probabilities = model.probabilities;
@@ -16,12 +11,7 @@ export class NaiveBayes {
 		}
 	}
 
-	/**
-   * Train the classifier with the current training set and labels.
-   * @param {Matrix|Array} trainingSet
-   * @param {Array} trainingLabels
-   */
-	train(trainingSet, trainingLabels) {
+	fit(trainingSet, trainingLabels) {
 		trainingSet = Matrix.checkMatrix(trainingSet);
 
 		if (trainingSet.rows !== trainingLabels.length) {
@@ -30,7 +20,10 @@ export class NaiveBayes {
 			);
 		}
 
-		const instancesByClass = separateClasses(trainingSet, trainingLabels);
+		const instancesByClass = getValuesByClasses(
+			trainingSet,
+			trainingLabels,
+		);
 		const classList = getClassesList(trainingLabels);
 		let Probabilities = {};
 
@@ -89,11 +82,6 @@ export class NaiveBayes {
 		this.classes = getClassesList(trainingLabels);
 	}
 
-	/**
-   * Retrieves the predictions for the dataset with the current model.
-   * @param {Matrix|Array} dataset
-   * @return {Array} - predictions from the dataset.
-   */
 	predict(dataset) {
 		dataset = Matrix.checkMatrix(dataset);
 		var predictions = new Array(dataset.rows);
@@ -131,11 +119,7 @@ export class NaiveBayes {
 		return predictions;
 	}
 
-	/**
-   * Function that saves the current model.
-   * @return {object} - model in JSON format.
-   */
-	toJSON() {
+	save() {
 		return {
 			name: 'NaiveBayes',
 			probabilities: this.probabilities,
@@ -143,11 +127,6 @@ export class NaiveBayes {
 		};
 	}
 
-	/**
-   * Creates a new NaiveBayes from the given model
-   * @param {object} model
-   * @return {NaiveBayes}
-   */
 	static load(model) {
 		if (model.name !== 'NaiveBayes') {
 			throw new RangeError(`${model.name} is not a Naive Bayes`);

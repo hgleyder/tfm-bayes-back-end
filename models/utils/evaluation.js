@@ -1,12 +1,3 @@
-/**
- * @public
- * Evaluate Model with cross validation
-  * @param {Object} classificationModel - Classification Model
-  * @param {Matrix} X - Instances
-  * @param {Array} y - Classes of instances
-  * @param {Integer} folds - number of folds for cross validation
- * @return {Matrix} - Numerical representation matrix
- */
 export function crossValidationModel(classificationModel, X, y, folds = 10) {
 	try {
 		const instancesAmount = y.length;
@@ -75,15 +66,6 @@ export function crossValidationModel(classificationModel, X, y, folds = 10) {
 	}
 }
 
-/**
- * @public
- * Evaluate Model with cross validation Spam
-  * @param {Object} classificationModel - Classification Model
-  * @param {Matrix} X - Instances
-  * @param {Array} y - Classes of instances
-  * @param {Integer} folds - number of folds for cross validation
- * @return {Matrix} - Numerical representation matrix
- */
 export function crossValidationModelSpam(
 	classificationModel,
 	X,
@@ -171,12 +153,6 @@ export function crossValidationModelSpam(
 	}
 }
 
-/**
- * @public
- * Function that returns an array of classes.
- * @param {Array} y - predictions
- * @return {Array} - List of different classes
- */
 export function getClassesList(y) {
 	var classesList = [];
 	y.map((c) => {
@@ -186,12 +162,7 @@ export function getClassesList(y) {
 }
 
 //  ----------------------- Metrics ----------------------------
-/**
- * @public
- * Function that returns model Accuracy.
- * @param {Array} predictions - predictions
- * @return {Double} - Model General Accuracy
- */
+
 export function getGeneralAccuracy(predictions) {
 	const predictionsLength = predictions.length;
 	let correctlyInstantiatedCounter = 0;
@@ -202,13 +173,6 @@ export function getGeneralAccuracy(predictions) {
 		100).toFixed(4)}%`;
 }
 
-/**
- * @public
- * Function that returns model class Precision.
- * @param {Array} predictions - predictions
- * @param {String} currentClass - predictions
- * @return {Double} - Model Class Precision
- */
 export function getClassPrecision(predictions, currentClass) {
 	const auxPredictions = predictions.filter(
 		(p) => p.expected === currentClass.toString(),
@@ -229,13 +193,6 @@ export function getClassPrecision(predictions, currentClass) {
 	return parseFloat(tp / (tp + fp)).toFixed(4);
 }
 
-/**
- * @public
- * Function that returns model class Recall.
- * @param {Array} predictions - predictions
- * @param {String} currentClass - predictions
- * @return {Double} - Model Class Recall
- */
 export function getClassRecall(predictions, currentClass) {
 	const auxPredictions = predictions.filter(
 		(p) => p.expected === currentClass.toString(),
@@ -255,27 +212,12 @@ export function getClassRecall(predictions, currentClass) {
 	return parseFloat(tp / (tp + fn)).toFixed(4);
 }
 
-/**
- * @public
- * Function that calculate f-Measure.
- * @param {Double} precision - precision
- * @param {Double} recall - recall
- * @return {Double} - F-Measure
- */
 export function calculateFMeasure(precision, recall) {
 	const p = parseFloat(precision);
 	const r = parseFloat(recall);
 	return (2 * (p * r / (p + r))).toFixed(4);
 }
 
-/**
- * @public
- * Function that returns Confusion matrix per class.
- * @param {Array} predictions - predictions
- * @param {String} currentClass - the class we want to calculate the CM
- * @param {Array} classList - all classes list
- * @return {Object} - Confusion Matrix of the Class
- */
 export function getClassConfusionMatrix(predictions, currentClass, classList) {
 	const auxPredictions = predictions.filter(
 		(p) => p.expected === currentClass.toString(),

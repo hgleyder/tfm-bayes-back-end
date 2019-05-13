@@ -1,14 +1,8 @@
 import Matrix from 'ml-matrix';
-
-import { separateClasses } from './utils/models';
 import { getClassesList } from './utils/evaluation';
+import { getValuesByClasses } from './utils/methods';
 
 export class MultinomialNB {
-	/**
-   * Constructor for Multinomial Naive Bayes, the model parameter is for load purposes.
-   * @constructor
-   * @param {object} model - for load purposes.
-   */
 	constructor(model) {
 		if (model) {
 			this.conditionalProbability = Matrix.checkMatrix(
@@ -19,12 +13,7 @@ export class MultinomialNB {
 		}
 	}
 
-	/**
-   * Train the classifier with the current training set and labels, the labels must be numbers between 0 and n.
-   * @param {Matrix|Array} trainingSet
-   * @param {Array} trainingLabels
-   */
-	train(trainingSet, trainingLabels) {
+	fit(trainingSet, trainingLabels) {
 		trainingSet = Matrix.checkMatrix(trainingSet);
 
 		if (trainingSet.rows !== trainingLabels.length) {
@@ -33,7 +22,7 @@ export class MultinomialNB {
 			);
 		}
 
-		var separateClass = separateClasses(trainingSet, trainingLabels);
+		var separateClass = getValuesByClasses(trainingSet, trainingLabels);
 		this.priorProbability = new Matrix(separateClass.length, 1);
 
 		for (var i = 0; i < separateClass.length; ++i) {
@@ -60,11 +49,6 @@ export class MultinomialNB {
 		this.classes = getClassesList(trainingLabels);
 	}
 
-	/**
-   * Retrieves the predictions for the dataset with the current model.
-   * @param {Matrix|Array} dataset
-   * @return {Array} - predictions from the dataset.
-   */
 	predict(dataset) {
 		dataset = Matrix.checkMatrix(dataset);
 		var predictions = new Array(dataset.rows);
@@ -96,11 +80,7 @@ export class MultinomialNB {
 		return predictions;
 	}
 
-	/**
-   * Function that saves the current model.
-   * @return {object} - model in JSON format.
-   */
-	toJSON() {
+	save() {
 		return {
 			name: 'MultinomialNB',
 			priorProbability: this.priorProbability,
@@ -109,11 +89,6 @@ export class MultinomialNB {
 		};
 	}
 
-	/**
-   * Creates a new MultinomialNB from the given model
-   * @param {object} model
-   * @return {MultinomialNB}
-   */
 	static load(model) {
 		if (model.name !== 'MultinomialNB') {
 			throw new RangeError(

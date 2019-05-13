@@ -1,16 +1,10 @@
 import Matrix from 'ml-matrix';
 import Stat from 'ml-stat';
 
-import { separateClasses } from './utils/models';
+import { getValuesByClasses } from './utils/methods';
 import { getClassesList } from './utils/evaluation';
 
 export class GaussianNB {
-	/**
-   * Gaussian Naive Bayes classifier constructor
-   * @constructor
-   * @param {boolean} reload
-   * @param {object} model
-   */
 	constructor(reload, model) {
 		if (reload) {
 			this.means = model.means;
@@ -19,13 +13,7 @@ export class GaussianNB {
 		}
 	}
 
-	/**
-   * Function that trains the classifier model using 2 matrix one related with the attributes and the other
-   * related with the classes of those instances
-   * @param {Matrix|Array} trainingSet
-   * @param {Matrix|Array} trainingLabels
-   */
-	train(trainingSet, trainingLabels) {
+	fit(trainingSet, trainingLabels) {
 		trainingSet = Matrix.checkMatrix(trainingSet);
 
 		if (trainingSet.rows !== trainingLabels.length) {
@@ -34,7 +22,7 @@ export class GaussianNB {
 			);
 		}
 
-		var separatedClasses = separateClasses(trainingSet, trainingLabels);
+		var separatedClasses = getValuesByClasses(trainingSet, trainingLabels);
 		var jointProbabilities = new Array(separatedClasses.length);
 
 		this.means = new Array(separatedClasses.length);
@@ -62,12 +50,6 @@ export class GaussianNB {
 		this.classes = getClassesList(trainingLabels);
 	}
 
-	/**
-   * function that predicts a dataset.
-   *
-   * @param {Matrix|Array} dataset
-   * @return {Array}
-   */
 	predict(dataset) {
 		if (dataset[0].length === this.jointProbabilities[0].length) {
 			throw new RangeError(
@@ -88,11 +70,7 @@ export class GaussianNB {
 		return predictions;
 	}
 
-	/**
-   * Function that export the GaussianNB model.
-   * @return {object}
-   */
-	toJSON() {
+	save() {
 		return {
 			modelName: 'GaussianNB',
 			means: this.means,
@@ -101,11 +79,6 @@ export class GaussianNB {
 		};
 	}
 
-	/**
-   * Function that create a GaussianNB classifier with the given model.
-   * @param {object} model
-   * @return {GaussianNB}
-   */
 	static load(model) {
 		if (model.modelName !== 'GaussianNB') {
 			throw new RangeError(
@@ -118,15 +91,6 @@ export class GaussianNB {
 	}
 }
 
-/**
- * @private
- * Function the retrieves a prediction with one case.
- *
- * @param {Array} currentCase
- * @param {Array} mean - Precalculated means of each class trained
- * @param {Array} classes - Precalculated value of each class
- * @return {number}
- */
 function getCurrentClass(currentCase, mean, classes) {
 	var maxProbability = 0;
 	var predictedClass = -1;
@@ -156,27 +120,11 @@ function getCurrentClass(currentCase, mean, classes) {
 	return predictedClass;
 }
 
-/**
- * @private
- * function that retrieves the probability of the feature given the class.
- * @param {number} value - value of the feature.
- * @param {number} mean - mean of the feature for the given class.
- * @param {number} C1 - precalculated value of (1 / (sqrt(2*pi) * std)).
- * @param {number} C2 - precalculated value of (2 * std^2) for the denominator of the exponential.
- * @return {number}
- */
 function calculateLogProbability(value, mean, C1, C2) {
 	value = value - mean;
 	return Math.log10(C1 * Math.exp(value * value / C2));
 }
 
-/**
- * @private
- * function that calculates the STD.
- * @param {Array} means - means of the features for the given class.
- * @param {Matrix} values - values of the features.
- * @return {Array}
- */
 function calculateStandardDesviations(means, values) {
 	let std = [];
 	let value;
