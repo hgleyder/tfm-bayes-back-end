@@ -21,7 +21,7 @@ export function crossValidationModel(classificationModel, X, y, folds = 10) {
 					instancesPerFold,
 				);
 				var auxClassList = getClassesList(auxY);
-				model.train(auxX, auxY);
+				model.fit(auxX, auxY);
 
 				var predictions = model.predict(auxXtest);
 				predictions.map((prediction, i) => {
@@ -94,7 +94,7 @@ export function crossValidationModelSpam(
 					instancesPerFold,
 				);
 				var auxClassList = getClassesList(auxY);
-				model.train(auxX, auxY);
+				model.fit(auxX, auxY);
 
 				var predictions = model.predict(auxXtest);
 				var predictionsProbs = model.predict_proba(auxXtest);

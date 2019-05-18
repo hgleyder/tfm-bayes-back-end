@@ -31,6 +31,7 @@ app.use(function(req, res, next) {
 		'https://nbmail.me',
 		'http://http://68.183.165.156:3000',
 		'http://127.0.0.1:3000',
+		'http://127.0.0.1:3002',
 		'https://www.nbmail.me',
 
 		'https://bayessian.nbmail.me',

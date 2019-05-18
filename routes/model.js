@@ -33,7 +33,7 @@ router.post('/multinomial/create/cv', function(req, res, next) {
 			data.classes,
 		);
 		const model = new MultinomialNB();
-		model.train(data.instances, data.classes);
+		model.fit(data.instances, data.classes);
 		res.json({ model, metrics });
 	} catch (e) {
 		res
@@ -66,7 +66,7 @@ router.post('/multinomial/create/spam/cv', function(req, res, next) {
 			data.classes,
 		);
 		const model = new MultinomialNB();
-		model.train(data.instances, data.classes);
+		model.fit(data.instances, data.classes);
 		res.json({ model, metrics });
 	} catch (e) {
 		res
@@ -99,7 +99,7 @@ router.post('/gaussian/create/cv', function(req, res, next) {
 			data.classes,
 		);
 		const model = new GaussianNB();
-		model.train(data.instances, data.classes);
+		model.fit(data.instances, data.classes);
 		res.json({ model, metrics });
 	} catch (e) {
 		res
@@ -132,7 +132,7 @@ router.post('/bernoulli/create/cv', function(req, res, next) {
 			data.classes,
 		);
 		const model = new BernoulliNB();
-		model.train(data.instances, data.classes);
+		model.fit(data.instances, data.classes);
 		res.json({ model, metrics });
 	} catch (e) {
 		res
@@ -154,7 +154,7 @@ router.post('/naivebayes/create/cv', function(req, res, next) {
 			data.classes,
 		);
 		const model = new NaiveBayes();
-		model.train(data.instances, data.classes);
+		model.fit(data.instances, data.classes);
 		res.json({ model, metrics });
 	} catch (e) {
 		res
@@ -176,7 +176,7 @@ router.post('/saveModel', function(req, res, next) {
 	if (data.modelName === 'GaussianNB') model = new GaussianNB();
 	if (data.modelName === 'BernoulliNB') model = new BernoulliNB();
 	deleteAllFilesFromDir(modelsDirectory);
-	model.train(data.instances, data.classes);
+	model.fit(data.instances, data.classes);
 	const uuid = new Date().getTime();
 	const fileName = `${data.modelName}-${uuid}`;
 	createJsonFile(model, modelsDirectory, fileName);

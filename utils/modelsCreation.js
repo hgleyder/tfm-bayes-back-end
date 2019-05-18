@@ -228,7 +228,7 @@ export const createManualModelData = () => {
 
 		// ---------- SAVE MODEL -------------
 		const model = new MultinomialNB();
-		model.train(
+		model.fit(
 			instancesProcessed.map((r) => r.instance),
 			instancesProcessed.map((r) => r.class),
 		);
@@ -273,9 +273,10 @@ export const createModelData = (modelId, modelNumber) => {
 				if (attributes) {
 					if (words.indexOf('emailaddr') === -1) {
 						words.push('emailaddr');
-						counter['emailaddr'] = 1;
+						wordsCounter['emailaddr'] = 1;
 					} else {
-						counter['emailaddr'] = counter['emailaddr'] + 1;
+						wordsCounter['emailaddr'] =
+							wordsCounter['emailaddr'] + 1;
 					}
 				}
 
@@ -287,9 +288,9 @@ export const createModelData = (modelId, modelNumber) => {
 				if (attributes) {
 					if (words.indexOf('urladdrs') === -1) {
 						words.push('urladdrs');
-						counter['urladdrs'] = 1;
+						wordsCounter['urladdrs'] = 1;
 					} else {
-						counter['urladdrs'] = counter['urladdrs'] + 1;
+						wordsCounter['urladdrs'] = wordsCounter['urladdrs'] + 1;
 					}
 				}
 
@@ -301,9 +302,10 @@ export const createModelData = (modelId, modelNumber) => {
 				if (attributes) {
 					if (words.indexOf('phonenumbr') === -1) {
 						words.push('phonenumbr');
-						counter['phonenumbr'] = 1;
+						wordsCounter['phonenumbr'] = 1;
 					} else {
-						counter['phonenumbr'] = counter['phonenumbr'] + 1;
+						wordsCounter['phonenumbr'] =
+							wordsCounter['phonenumbr'] + 1;
 					}
 				}
 
@@ -315,9 +317,9 @@ export const createModelData = (modelId, modelNumber) => {
 				if (attributes) {
 					if (words.indexOf('numbr') === -1) {
 						words.push('numbr');
-						counter['numbr'] = 1;
+						wordsCounter['numbr'] = 1;
 					} else {
-						counter['numbr'] = counter['numbr'] + 1;
+						wordsCounter['numbr'] = wordsCounter['numbr'] + 1;
 					}
 				}
 
@@ -329,20 +331,26 @@ export const createModelData = (modelId, modelNumber) => {
 				if (attributes) {
 					if (words.indexOf('currencysymbol') === -1) {
 						words.push('currencysymbol');
-						counter['currencysymbol'] = 1;
+						wordsCounter['currencysymbol'] = 1;
 					} else {
-						counter['currencysymbol'] =
-							counter['currencysymbol'] + 1;
+						wordsCounter['currencysymbol'] =
+							wordsCounter['currencysymbol'] + 1;
 					}
 				}
 			}
 		});
-		let attrs = Object.keys(wordsCounter)
-			.filter((word) => wordsCounter[word] >= minCount)
+
+		const importantAttributes = Object.keys(wordsCounter).filter(
+			(word) => wordsCounter[word] >= minCount,
+		);
+
+		const attrFrequencies = importantAttributes
+			.map((attr) => `${attr},${wordsCounter[attr]}`)
 			.join('\n');
+
 		fs.writeFileSync(
 			`./uploads/models/${modelId}/attributes.txt`,
-			attrs + '\n',
+			attrFrequencies,
 		);
 
 		// ----------- CREATE DATASET FILE -----------------
@@ -424,7 +432,7 @@ export const createModelData = (modelId, modelNumber) => {
 						class: clas,
 					});
 					fs.appendFileSync(
-						`./uploads/manual/models/${modelId}/dataset.csv`,
+						`./uploads/models/${modelId}/dataset.csv`,
 						auxInstance + ',' + clas + '\n',
 					);
 				}
@@ -443,12 +451,12 @@ export const createModelData = (modelId, modelNumber) => {
 			uid: modelId,
 			number: modelNumber,
 			instancesCount: instancesProcessed.map((r) => r.instance).length,
-			attributesCount: attrs.split('\n').length,
+			attributesCount: importantAttributes.length,
 		});
 
 		// ---------- SAVE MODEL -------------
 		const model = new MultinomialNB();
-		model.train(
+		model.fit(
 			instancesProcessed.map((r) => r.instance),
 			instancesProcessed.map((r) => r.class),
 		);
@@ -477,9 +485,26 @@ export const createInitialDatasetFile = () => {
 							if (newMessages.val()) {
 								//Add Verified Messages to previous messages
 								Object.keys(newMessages.val()).map((msg) => {
+									console.log(
+										newMessages
+											.val()
+											[msg].content.replace(
+												/(\r\n|\n|\r)/gm,
+												'',
+											) +
+											'/---/' +
+											newMessages.val()[msg]
+												.classification +
+											'\n',
+									);
 									fs.appendFileSync(
 										`./uploads/models/${modelId}/emails.csv`,
-										newMessages.val()[msg].content +
+										newMessages
+											.val()
+											[msg].content.replace(
+												/(\r\n|\n|\r)/gm,
+												'',
+											) +
 											'/---/' +
 											newMessages.val()[msg]
 												.classification +
