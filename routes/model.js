@@ -7,6 +7,15 @@ import {
 } from '../models/utils/evaluation';
 import { loadModelFromImportedData } from '../models/utils/import';
 
+import {
+	createJsonFile,
+	deleteAllFilesFromDir,
+	modelsDirectory,
+	downloadAFileResponse,
+} from '../utils/files';
+
+import API_URL from '../config/apiUrl';
+
 var router = express.Router();
 
 /* Cross Validation Metrics from data */
@@ -180,6 +189,7 @@ router.post('/saveModel', function(req, res, next) {
 	const uuid = new Date().getTime();
 	const fileName = `${data.modelName}-${uuid}`;
 	createJsonFile(model, modelsDirectory, fileName);
+	console.log();
 	res.json({ url: `${API_URL}/model/saveModel/${fileName}` });
 });
 
@@ -204,8 +214,6 @@ router.post('/load', function(req, res, next) {
 router.post('/predict', function(req, res, next) {
 	var modelData = req.body.modelData;
 	var instances = req.body.instances;
-	console.log(modelData);
-	console.log(instances);
 	try {
 		const model = loadModelFromImportedData(modelData);
 		const predictions = model.predict(instances);
