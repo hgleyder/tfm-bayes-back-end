@@ -353,6 +353,8 @@ export const createModelData = (modelId, modelNumber) => {
 			attrFrequencies,
 		);
 
+		fs.appendFileSync(`./uploads/models/${modelId}/attributes.txt`, '\n');
+
 		// ----------- CREATE DATASET FILE -----------------
 		const instancesProcessed = [];
 		instances.map((i) => {
@@ -564,16 +566,33 @@ export const preprocessInstances = (instances, modelUid) => {
 	let auxInstances = instances.map((inst) =>
 		removeStopwordsAndApplyStemmer(inst),
 	);
+
 	const emailsCount = fs
-		.readFileSync(`/uploads/models/${modelUid}/emails.csv`, 'utf8')
+		.readFileSync(`./uploads/models/${modelUid}/emails.csv`, 'utf8')
 		.split('\n').length;
 
-	const attributes = readAttributesFromFile(
+	let attributes = readAttributesFromFile(
 		`./uploads/models/${modelUid}/attributes.txt`,
 	);
 
+	const wordCounter = {};
+
+	attributes = attributes.map((val) => {
+		if (val.includes(',')) {
+			const data = val.split(',');
+			wordCounter[data[0]] = parseInt(data[1]);
+			return data[0];
+		}
+		return val;
+	});
+
 	return auxInstances.map((instanceWordsList) =>
-		getInstanceFromAttributes(instanceWordsList, attributes, emailsCount),
+		getInstanceFromAttributes(
+			instanceWordsList,
+			attributes,
+			wordCounter,
+			emailsCount,
+		),
 	);
 };
 

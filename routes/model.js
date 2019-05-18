@@ -204,6 +204,8 @@ router.post('/load', function(req, res, next) {
 router.post('/predict', function(req, res, next) {
 	var modelData = req.body.modelData;
 	var instances = req.body.instances;
+	console.log(modelData);
+	console.log(instances);
 	try {
 		const model = loadModelFromImportedData(modelData);
 		const predictions = model.predict(instances);
