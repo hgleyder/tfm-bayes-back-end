@@ -19,7 +19,7 @@ router.get('/new/manual', function(req, res, next) {
 
 // NEEEEEEEEEEEWWWWW FROM HERE
 
-router.get('/new', function(req, res, next) {
+router.post('/new', function(req, res, next) {
 	var modelData = req.body.model;
 	createInitialDatasetFile();
 	res.send('dataset file created');
