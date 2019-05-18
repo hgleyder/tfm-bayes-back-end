@@ -1,10 +1,5 @@
 import express from 'express';
 import { MultinomialNB, GaussianNB, BernoulliNB, NaiveBayes } from '../models';
-import Matrix from 'ml-matrix';
-import {
-	getDatasetNumericalRepresentation,
-	getNumerialMatrixFromRepresentation,
-} from '../models/utils/models';
 import ErrorMessages from '../utils/errorMessages';
 import {
 	crossValidationModel,
