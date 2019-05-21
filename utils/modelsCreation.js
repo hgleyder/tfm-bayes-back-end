@@ -3,14 +3,17 @@ import fs from 'fs';
 import { Database } from '../config/firebase';
 const sw = require('stopword');
 import stemmer from 'stemmer';
-import { crossValidationModel } from '../models/utils/evaluation';
+import {
+	crossValidationModel,
+	crossValidationModelSpam,
+} from '../models/utils/evaluation';
 import { MultinomialNB } from '../models';
 import { createJsonFile } from '../utils/files';
 
 export const createManualModelData = () => {
 	let words = [];
 	let wordsCounter = {};
-	const minCount = 40;
+	const minCount = 100;
 	const modelId = new Date().getTime();
 	const instancesPath = './uploads/manual/emails.csv';
 	const separator = '/---/';
@@ -225,7 +228,7 @@ export const createManualModelData = () => {
 
 		// ---------- SAVE MODEL -------------
 		const model = new MultinomialNB();
-		model.train(
+		model.fit(
 			instancesProcessed.map((r) => r.instance),
 			instancesProcessed.map((r) => r.class),
 		);
@@ -236,7 +239,7 @@ export const createManualModelData = () => {
 export const createModelData = (modelId, modelNumber) => {
 	let words = [];
 	let wordsCounter = {};
-	const minCount = 20;
+	const minCount = 100;
 	const instancesPath = './uploads/models/' + modelId + '/emails.csv';
 	const separator = '/---/';
 
@@ -260,13 +263,97 @@ export const createModelData = (modelId, modelNumber) => {
 						wordsCounter[a] = wordsCounter[a] + 1;
 					}
 				});
+				// emails
+				attributes = i
+					.split(separator)[0]
+					.toLowerCase()
+					.match(
+						/[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*/g,
+					);
+				if (attributes) {
+					if (words.indexOf('emailaddr') === -1) {
+						words.push('emailaddr');
+						wordsCounter['emailaddr'] = 1;
+					} else {
+						wordsCounter['emailaddr'] =
+							wordsCounter['emailaddr'] + 1;
+					}
+				}
+
+				// urls
+				attributes = i
+					.split(separator)[0]
+					.toLowerCase()
+					.match(/(((https?:\/\/)|(www\.))[^\s]+)/g);
+				if (attributes) {
+					if (words.indexOf('urladdrs') === -1) {
+						words.push('urladdrs');
+						wordsCounter['urladdrs'] = 1;
+					} else {
+						wordsCounter['urladdrs'] = wordsCounter['urladdrs'] + 1;
+					}
+				}
+
+				// phone numbers
+				attributes = i
+					.split(separator)[0]
+					.toLowerCase()
+					.match(/[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*/g);
+				if (attributes) {
+					if (words.indexOf('phonenumbr') === -1) {
+						words.push('phonenumbr');
+						wordsCounter['phonenumbr'] = 1;
+					} else {
+						wordsCounter['phonenumbr'] =
+							wordsCounter['phonenumbr'] + 1;
+					}
+				}
+
+				// numbers
+				attributes = i
+					.split(separator)[0]
+					.toLowerCase()
+					.match(/-?\d+\.?\d*$/g);
+				if (attributes) {
+					if (words.indexOf('numbr') === -1) {
+						words.push('numbr');
+						wordsCounter['numbr'] = 1;
+					} else {
+						wordsCounter['numbr'] = wordsCounter['numbr'] + 1;
+					}
+				}
+
+				// currency symbol
+				attributes = i
+					.split(separator)[0]
+					.toLowerCase()
+					.match(/(kr|$|£|€)/g);
+				if (attributes) {
+					if (words.indexOf('currencysymbol') === -1) {
+						words.push('currencysymbol');
+						wordsCounter['currencysymbol'] = 1;
+					} else {
+						wordsCounter['currencysymbol'] =
+							wordsCounter['currencysymbol'] + 1;
+					}
+				}
 			}
 		});
-		let attrs = Object.keys(wordsCounter)
-			.filter((word) => wordsCounter[word] >= minCount)
+
+		const importantAttributes = Object.keys(wordsCounter).filter(
+			(word) => wordsCounter[word] >= minCount,
+		);
+
+		const attrFrequencies = importantAttributes
+			.map((attr) => `${attr},${wordsCounter[attr]}`)
 			.join('\n');
-		attrs += '\n';
-		fs.writeFileSync(`./uploads/models/${modelId}/attributes.txt`, attrs);
+
+		fs.writeFileSync(
+			`./uploads/models/${modelId}/attributes.txt`,
+			attrFrequencies,
+		);
+
+		fs.appendFileSync(`./uploads/models/${modelId}/attributes.txt`, '\n');
 
 		// ----------- CREATE DATASET FILE -----------------
 		const instancesProcessed = [];
@@ -283,9 +370,64 @@ export const createModelData = (modelId, modelNumber) => {
 				if (attributes && i.split(separator).length === 2) {
 					attributes = sw.removeStopwords(attributes, sw.en);
 					attributes = attributes.map((w) => stemmer(w));
+					// emails
+					let aux =
+						i
+							.split(separator)[0]
+							.toLowerCase()
+							.match(
+								/[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*/g,
+							) || [];
+					aux.map((word) => {
+						attributes.push('emailaddr');
+					});
+
+					// urls
+					aux =
+						i
+							.split(separator)[0]
+							.toLowerCase()
+							.match(/(((https?:\/\/)|(www\.))[^\s]+)/g) || [];
+					aux.map((word) => {
+						attributes.push('urladdrs');
+					});
+
+					// phone numbers
+					aux =
+						i
+							.split(separator)[0]
+							.toLowerCase()
+							.match(
+								/[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*/g,
+							) || [];
+					aux.map((word) => {
+						attributes.push('phonenumbr');
+					});
+
+					// numbers
+					aux =
+						i
+							.split(separator)[0]
+							.toLowerCase()
+							.match(/-?\d+\.?\d*$/g) || [];
+					aux.map((word) => {
+						attributes.push('numbr');
+					});
+
+					// currency symbol
+					aux = i
+						.split(separator)[0]
+						.toLowerCase()
+						.match(/(kr|$|£|€)/g);
+					aux.map((word) => {
+						attributes.push('currencysymbol');
+					});
+
 					const auxInstance = getInstanceFromAttributes(
 						attributes,
-						attrs.split('\n'),
+						importantAttributes,
+						wordsCounter,
+						instances.length,
 					);
 					instancesProcessed.push({
 						instance: auxInstance,
@@ -300,7 +442,7 @@ export const createModelData = (modelId, modelNumber) => {
 		});
 
 		// ----------- CREATE MODEL METRICS --------------------
-		var metrics = crossValidationModel(
+		var metrics = crossValidationModelSpam(
 			MultinomialNB,
 			instancesProcessed.map((r) => r.instance),
 			instancesProcessed.map((r) => r.class),
@@ -311,12 +453,12 @@ export const createModelData = (modelId, modelNumber) => {
 			uid: modelId,
 			number: modelNumber,
 			instancesCount: instancesProcessed.map((r) => r.instance).length,
-			attributesCount: attrs.split('\n').length,
+			attributesCount: importantAttributes.length,
 		});
 
 		// ---------- SAVE MODEL -------------
 		const model = new MultinomialNB();
-		model.train(
+		model.fit(
 			instancesProcessed.map((r) => r.instance),
 			instancesProcessed.map((r) => r.class),
 		);
@@ -345,9 +487,26 @@ export const createInitialDatasetFile = () => {
 							if (newMessages.val()) {
 								//Add Verified Messages to previous messages
 								Object.keys(newMessages.val()).map((msg) => {
+									console.log(
+										newMessages
+											.val()
+											[msg].content.replace(
+												/(\r\n|\n|\r)/gm,
+												'',
+											) +
+											'/---/' +
+											newMessages.val()[msg]
+												.classification +
+											'\n',
+									);
 									fs.appendFileSync(
 										`./uploads/models/${modelId}/emails.csv`,
-										newMessages.val()[msg].content +
+										newMessages
+											.val()
+											[msg].content.replace(
+												/(\r\n|\n|\r)/gm,
+												'',
+											) +
 											'/---/' +
 											newMessages.val()[msg]
 												.classification +
@@ -407,16 +566,33 @@ export const preprocessInstances = (instances, modelUid) => {
 	let auxInstances = instances.map((inst) =>
 		removeStopwordsAndApplyStemmer(inst),
 	);
+
 	const emailsCount = fs
-		.readFileSync(`/uploads/models/${modelUid}/emails.csv`, 'utf8')
+		.readFileSync(`./uploads/models/${modelUid}/emails.csv`, 'utf8')
 		.split('\n').length;
 
-	const attributes = readAttributesFromFile(
+	let attributes = readAttributesFromFile(
 		`./uploads/models/${modelUid}/attributes.txt`,
 	);
 
+	const wordCounter = {};
+
+	attributes = attributes.map((val) => {
+		if (val.includes(',')) {
+			const data = val.split(',');
+			wordCounter[data[0]] = parseInt(data[1]);
+			return data[0];
+		}
+		return val;
+	});
+
 	return auxInstances.map((instanceWordsList) =>
-		getInstanceFromAttributes(instanceWordsList, attributes, emailsCount),
+		getInstanceFromAttributes(
+			instanceWordsList,
+			attributes,
+			wordCounter,
+			emailsCount,
+		),
 	);
 };
 
@@ -485,11 +661,11 @@ export const calculateTfIdf = (
 	docsCount,
 ) => {
 	// WITH TF-DIF
-	const TF = Math.log10(wordCount + 1);
-	const IDF = Math.log10(docsCount / docsWithWord);
-	return TF * IDF;
+	// const TF = wordCount / totalDocWords;
+	// const IDF = Math.log10(docsCount / docsWithWord) + 1;
+	// return TF * IDF;
 
 	// WITHOUT TF-IDF
-	// return wordCount;
+	return wordCount;
 };
 ////////////////////////////////////////////////////////////////////////

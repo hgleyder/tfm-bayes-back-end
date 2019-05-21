@@ -21,7 +21,7 @@ router.get('/new/manual', function(req, res, next) {
 
 router.post('/new', function(req, res, next) {
 	var modelData = req.body.model;
-	createInitialDatasetFile(modelData);
+	createInitialDatasetFile();
 	res.send('dataset file created');
 });
 
@@ -42,9 +42,25 @@ router.post('/predict', function(req, res, next) {
 			instances.map((inst) => inst.content),
 			modelData,
 		);
-		const predictions = model
-			.predict(instancesContent)
-			.map((p) => model.classes[parseInt(p)]);
+		const values = model.predict(instancesContent);
+		var predictionsProbs = model.predict_proba(instancesContent);
+		const valsPreds = predictionsProbs.map((pred) =>
+			pred.map((v) => Math.pow(10, v)),
+		);
+		const probs = valsPreds.map((p) => {
+			const total = p[0] + p[1];
+			return [ p[0] / total, p[1] / total ];
+		});
+
+		const predictions = values.map(
+			(p, index) =>
+				parseInt(p) === 1
+					? probs[index][1] >= 0.7
+						? model.classes[1]
+						: model.classes[0]
+					: model.classes[parseInt(p)],
+		);
+
 		setMessagesClassification(userUid, instances, predictions);
 		res.send('classification of the messages is in process');
 	} catch (e) {

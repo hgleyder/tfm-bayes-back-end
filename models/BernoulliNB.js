@@ -1,14 +1,9 @@
 import Matrix from 'ml-matrix';
 
-import { separateClasses } from './utils/models';
+import { getValuesByClasses } from './utils/methods';
 import { getClassesList } from './utils/evaluation';
 
 export class BernoulliNB {
-	/**
-   * Constructor for Bernoulli Naive Bayes.
-   * @constructor
-   * @param {object} model
-   */
 	constructor(model) {
 		if (model) {
 			this.conditionalProbability = Matrix.checkMatrix(
@@ -19,12 +14,7 @@ export class BernoulliNB {
 		}
 	}
 
-	/**
-   * Train the classifier with the current training set and labels, the labels must be numbers between 0 and n.
-   * @param {Matrix|Array} trainingSet
-   * @param {Array} trainingLabels
-   */
-	train(trainingSet, trainingLabels) {
+	fit(trainingSet, trainingLabels) {
 		trainingSet = Matrix.checkMatrix(trainingSet);
 
 		if (trainingSet.rows !== trainingLabels.length) {
@@ -49,7 +39,7 @@ export class BernoulliNB {
 			});
 		});
 
-		var separateClass = separateClasses(trainingSet, trainingLabels);
+		var separateClass = getValuesByClasses(trainingSet, trainingLabels);
 		this.priorProbability = new Matrix(separateClass.length, 1);
 
 		for (var i = 0; i < separateClass.length; ++i) {
@@ -76,11 +66,6 @@ export class BernoulliNB {
 		this.classes = getClassesList(trainingLabels);
 	}
 
-	/**
-   * Retrieves the predictions for the dataset with the current model.
-   * @param {Matrix|Array} dataset
-   * @return {Array} - predictions from the dataset.
-   */
 	predict(dataset) {
 		dataset = Matrix.checkMatrix(dataset);
 		let auxDataset = dataset;
@@ -127,11 +112,7 @@ export class BernoulliNB {
 		return predictions;
 	}
 
-	/**
-   * Function that saves the current model.
-   * @return {object} - model in JSON format.
-   */
-	toJSON() {
+	save() {
 		return {
 			name: 'BernoulliNB',
 			priorProbability: this.priorProbability,
@@ -140,11 +121,6 @@ export class BernoulliNB {
 		};
 	}
 
-	/**
-   * Creates a new BernoulliNB from the given model
-   * @param {object} model
-   * @return {BernoulliNB}
-   */
 	static load(model) {
 		if (model.name !== 'BernoulliNB') {
 			throw new RangeError(

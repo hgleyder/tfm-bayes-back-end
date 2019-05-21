@@ -5,9 +5,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const bodyParser = require('body-parser');
 
-var indexRouter = require('./routes/index');
 var modelRouter = require('./routes/model');
-var filesRouter = require('./routes/files');
 var spamRouter = require('./routes/spam');
 
 import frontEndUrl from './config/frontEndUrl';
@@ -27,34 +25,42 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(function(req, res, next) {
-	// Website you wish to allow to connect
+	// // Website you wish to allow to connect
 	// res.setHeader('Access-Control-Allow-Origin', frontEndUrl);
-	res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3002');
-	// res.setHeader('Access-Control-Allow-Origin', 'https://nbmail.me');
+	var allowedOrigins = [
+		'https://nbmail.me',
+		'http://http://68.183.165.156:3000',
+		'http://127.0.0.1:3000',
+		'http://127.0.0.1:3002',
+		'https://www.nbmail.me',
 
-	// Request methods you wish to allow
+		'https://bayessian.nbmail.me',
+		'http://http://68.183.165.156:4000',
+		'http://127.0.0.1:4000',
+		'http://127.0.0.1:3002',
+		'https://www.bayessian.nbmail.me',
+	];
+	var origin = req.headers.origin;
+	if (allowedOrigins.indexOf(origin) > -1) {
+	}
+
+	res.setHeader('Access-Control-Allow-Origin', '*');
+
+	res.setHeader('Access-Control-Allow-Credentials', 'true');
 	res.setHeader(
 		'Access-Control-Allow-Methods',
-		'GET, POST, OPTIONS, PUT, PATCH, DELETE',
+		'GET,HEAD,OPTIONS,POST,PUT,DELETE',
 	);
-
-	// Request headers you wish to allow
 	res.setHeader(
 		'Access-Control-Allow-Headers',
-		'X-Requested-With,content-type',
+		'Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization, access-control-allow-origin',
 	);
-
-	// Set to true if you need the website to include cookies in the requests sent
-	// to the API (e.g. in case you use sessions)
-	res.setHeader('Access-Control-Allow-Credentials', true);
 
 	// Pass to next layer of middleware
 	next();
 });
 
-app.use('/', indexRouter);
 app.use('/model', modelRouter);
-app.use('/files', filesRouter);
 app.use('/spam', spamRouter);
 
 // catch 404 and forward to error handler
