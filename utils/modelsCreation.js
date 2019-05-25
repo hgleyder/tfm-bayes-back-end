@@ -662,7 +662,7 @@ export const calculateTfIdf = (
 ) => {
 	// WITH TF-DIF
 	// const TF = wordCount / totalDocWords;
-	// const IDF = Math.log10(docsCount / docsWithWord) + 1;
+	// const IDF = Math.log(docsCount / docsWithWord) + 1;
 	// return TF * IDF;
 
 	// WITHOUT TF-IDF
