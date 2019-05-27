@@ -101,6 +101,7 @@ export class BernoulliNB {
 			inverseCurrent = new Matrix([ inverseCurrent ]);
 
 			predictions[i] = this.conditionalProbability
+				.clone()
 				.apply(matrixLog)
 				.mulRowVector(currentElement)
 				.add(auxProb.apply(matrixLog).mulRowVector(inverseCurrent))
