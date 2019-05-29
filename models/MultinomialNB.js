@@ -11,6 +11,7 @@ export class MultinomialNB {
 			this.priorProbability = Matrix.checkMatrix(model.priorProbability);
 			this.classes = model.classes;
 		}
+		this.name = 'MultinomialNB';
 	}
 
 	fit(trainingSet, trainingLabels) {

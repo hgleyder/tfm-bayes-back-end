@@ -9,6 +9,7 @@ export class NaiveBayes {
 			this.probabilities = model.probabilities;
 			this.classes = model.classes;
 		}
+		this.name = 'NaiveBayes';
 	}
 
 	fit(trainingSet, trainingLabels) {

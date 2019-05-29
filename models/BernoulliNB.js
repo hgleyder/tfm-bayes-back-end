@@ -12,6 +12,7 @@ export class BernoulliNB {
 			this.priorProbability = Matrix.checkMatrix(model.priorProbability);
 			this.classes = model.classes;
 		}
+		this.name = 'BernoulliNB';
 	}
 
 	fit(trainingSet, trainingLabels) {

@@ -11,6 +11,7 @@ export class GaussianNB {
 			this.jointProbabilities = model.jointProbabilities;
 			this.classes = model.classes;
 		}
+		this.name = 'GaussianNB';
 	}
 
 	fit(trainingSet, trainingLabels) {
