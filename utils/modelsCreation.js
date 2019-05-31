@@ -13,7 +13,7 @@ import { createJsonFile } from '../utils/files';
 export const createManualModelData = () => {
 	let words = [];
 	let wordsCounter = {};
-	const minCount = 100;
+	const minCount = 30;
 	const modelId = new Date().getTime();
 	const instancesPath = './uploads/manual/emails.csv';
 	const separator = '/---/';
@@ -22,8 +22,12 @@ export const createManualModelData = () => {
 	// ----------- CREATE ATTRIBUTES FILE -----------------
 	fs.readFile(instancesPath, 'utf8', (err, data) => {
 		if (err) throw err;
+		// Kick off the timer
+		console.time('testForEach');
 		const instances = data.split('\n');
-		instances.map((i) => {
+		instances.map((i, cont) => {
+			console.log(cont);
+			let Palabras = [];
 			// Replace email addresses with 'emailaddr'
 			// Replace URLs with 'httpaddr'
 			// Replace money symbols with 'moneysymb'
@@ -36,6 +40,8 @@ export const createManualModelData = () => {
 			if (attributes) {
 				attributes = sw.removeStopwords(attributes, sw.en);
 				attributes = attributes.map((w) => stemmer(w));
+				Palabras = attributes;
+
 				attributes.filter((a) => a.length > 1).map((a) => {
 					if (words.indexOf(a) === -1) {
 						words.push(a);
@@ -44,79 +50,94 @@ export const createManualModelData = () => {
 						wordsCounter[a] = wordsCounter[a] + 1;
 					}
 				});
-			}
 
-			// emails
-			attributes = i
-				.split(separator)[0]
-				.toLowerCase()
-				.match(
-					/[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*/g,
-				);
-			if (attributes) {
-				if (words.indexOf('emailaddr') === -1) {
-					words.push('emailaddr');
-					wordsCounter['emailaddr'] = 1;
-				} else {
-					wordsCounter['emailaddr'] = wordsCounter['emailaddr'] + 1;
-				}
-			}
+				// // bigramas
+				// attributes = Palabras.map((w, index) => {
+				// 	if (index < Palabras.length - 1) {
+				// 		return w + '-' + Palabras[index + 1];
+				// 	}
+				// 	return '';
+				// });
+				// attributes.filter((a) => a.length > 1).map((a) => {
+				// 	if (words.indexOf(a) === -1) {
+				// 		words.push(a);
+				// 		wordsCounter[a] = 1;
+				// 	} else {
+				// 		wordsCounter[a] = wordsCounter[a] + 1;
+				// 	}
+				// });
 
-			// urls
-			attributes = i
-				.split(separator)[0]
-				.toLowerCase()
-				.match(/(((https?:\/\/)|(www\.))[^\s]+)/g);
-			if (attributes) {
-				if (words.indexOf('urladdrs') === -1) {
-					words.push('urladdrs');
-					wordsCounter['urladdrs'] = 1;
-				} else {
-					wordsCounter['urladdrs'] = wordsCounter['urladdrs'] + 1;
-				}
-			}
+				// 	// emails
+				// 	attributes = i
+				// 		.split(separator)[0]
+				// 		.toLowerCase()
+				// 		.match(
+				// 			/[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*/g,
+				// 		);
+				// 	if (attributes) {
+				// 		if (words.indexOf('emailaddr') === -1) {
+				// 			words.push('emailaddr');
+				// 			wordsCounter['emailaddr'] = 1;
+				// 		} else {
+				// 			wordsCounter['emailaddr'] = wordsCounter['emailaddr'] + 1;
+				// 		}
+				// 	}
 
-			// phone numbers
-			attributes = i
-				.split(separator)[0]
-				.toLowerCase()
-				.match(/[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*/g);
-			if (attributes) {
-				if (words.indexOf('phonenumbr') === -1) {
-					words.push('phonenumbr');
-					wordsCounter['phonenumbr'] = 1;
-				} else {
-					wordsCounter['phonenumbr'] = wordsCounter['phonenumbr'] + 1;
-				}
-			}
+				// 	// urls
+				// 	attributes = i
+				// 		.split(separator)[0]
+				// 		.toLowerCase()
+				// 		.match(/(((https?:\/\/)|(www\.))[^\s]+)/g);
+				// 	if (attributes) {
+				// 		if (words.indexOf('urladdrs') === -1) {
+				// 			words.push('urladdrs');
+				// 			wordsCounter['urladdrs'] = 1;
+				// 		} else {
+				// 			wordsCounter['urladdrs'] = wordsCounter['urladdrs'] + 1;
+				// 		}
+				// 	}
 
-			// numbers
-			attributes = i
-				.split(separator)[0]
-				.toLowerCase()
-				.match(/-?\d+\.?\d*$/g);
-			if (attributes) {
-				if (words.indexOf('numbr') === -1) {
-					words.push('numbr');
-					wordsCounter['numbr'] = 1;
-				} else {
-					wordsCounter['numbr'] = wordsCounter['numbr'] + 1;
-				}
-			}
+				// 	// phone numbers
+				// 	attributes = i
+				// 		.split(separator)[0]
+				// 		.toLowerCase()
+				// 		.match(/[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*/g);
+				// 	if (attributes) {
+				// 		if (words.indexOf('phonenumbr') === -1) {
+				// 			words.push('phonenumbr');
+				// 			wordsCounter['phonenumbr'] = 1;
+				// 		} else {
+				// 			wordsCounter['phonenumbr'] = wordsCounter['phonenumbr'] + 1;
+				// 		}
+				// 	}
 
-			// currency symbol
-			attributes = i
-				.split(separator)[0]
-				.toLowerCase()
-				.match(/(kr|$|£|€)/g);
-			if (attributes) {
-				if (words.indexOf('currencysymbol') === -1) {
-					words.push('currencysymbol');
-					wordsCounter['currencysymbol'] = 1;
-				} else {
-					wordsCounter['currencysymbol'] =
-						wordsCounter['currencysymbol'] + 1;
-				}
+				// 	// numbers
+				// 	attributes = i
+				// 		.split(separator)[0]
+				// 		.toLowerCase()
+				// 		.match(/-?\d+\.?\d*$/g);
+				// 	if (attributes) {
+				// 		if (words.indexOf('numbr') === -1) {
+				// 			words.push('numbr');
+				// 			wordsCounter['numbr'] = 1;
+				// 		} else {
+				// 			wordsCounter['numbr'] = wordsCounter['numbr'] + 1;
+				// 		}
+				// 	}
+
+				// 	// currency symbol
+				// 	attributes = i
+				// 		.split(separator)[0]
+				// 		.toLowerCase()
+				// 		.match(/(kr|$|£|€)/g);
+				// 	if (attributes) {
+				// 		if (words.indexOf('currencysymbol') === -1) {
+				// 			words.push('currencysymbol');
+				// 			wordsCounter['currencysymbol'] = 1;
+				// 		} else {
+				// 			wordsCounter['currencysymbol'] =
+				// 				wordsCounter['currencysymbol'] + 1;
+				// 		}
 			}
 		});
 
@@ -147,60 +168,68 @@ export const createManualModelData = () => {
 					.toLowerCase()
 					.match(/([a-z]+)/g)[0];
 				if (attributes && i.split(separator).length === 2) {
-					// emails
-					let aux =
-						i
-							.split(separator)[0]
-							.toLowerCase()
-							.match(
-								/[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*/g,
-							) || [];
-					aux.map((word) => {
-						attributes.push('emailaddr');
-					});
+					// // emails
+					// let aux =
+					// 	i
+					// 		.split(separator)[0]
+					// 		.toLowerCase()
+					// 		.match(
+					// 			/[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*/g,
+					// 		) || [];
+					// aux.map((word) => {
+					// 	attributes.push('emailaddr');
+					// });
 
-					// urls
-					aux =
-						i
-							.split(separator)[0]
-							.toLowerCase()
-							.match(/(((https?:\/\/)|(www\.))[^\s]+)/g) || [];
-					aux.map((word) => {
-						attributes.push('urladdrs');
-					});
+					// // urls
+					// aux =
+					// 	i
+					// 		.split(separator)[0]
+					// 		.toLowerCase()
+					// 		.match(/(((https?:\/\/)|(www\.))[^\s]+)/g) || [];
+					// aux.map((word) => {
+					// 	attributes.push('urladdrs');
+					// });
 
-					// phone numbers
-					aux =
-						i
-							.split(separator)[0]
-							.toLowerCase()
-							.match(
-								/[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*/g,
-							) || [];
-					aux.map((word) => {
-						attributes.push('phonenumbr');
-					});
+					// // phone numbers
+					// aux =
+					// 	i
+					// 		.split(separator)[0]
+					// 		.toLowerCase()
+					// 		.match(
+					// 			/[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*/g,
+					// 		) || [];
+					// aux.map((word) => {
+					// 	attributes.push('phonenumbr');
+					// });
 
-					// numbers
-					aux =
-						i
-							.split(separator)[0]
-							.toLowerCase()
-							.match(/-?\d+\.?\d*$/g) || [];
-					aux.map((word) => {
-						attributes.push('numbr');
-					});
+					// // numbers
+					// aux =
+					// 	i
+					// 		.split(separator)[0]
+					// 		.toLowerCase()
+					// 		.match(/-?\d+\.?\d*$/g) || [];
+					// aux.map((word) => {
+					// 	attributes.push('numbr');
+					// });
 
-					// currency symbol
-					aux = i
-						.split(separator)[0]
-						.toLowerCase()
-						.match(/(kr|$|£|€)/g);
-					aux.map((word) => {
-						attributes.push('currencysymbol');
-					});
+					// // currency symbol
+					// aux = i
+					// 	.split(separator)[0]
+					// 	.toLowerCase()
+					// 	.match(/(kr|$|£|€)/g);
+					// aux.map((word) => {
+					// 	attributes.push('currencysymbol');
+					// });
+
 					attributes = sw.removeStopwords(attributes, sw.en);
 					attributes = attributes.map((w) => stemmer(w));
+					// const bigramasAux = attributes.map((w, index) => {
+					// 	if (index < attributes.length - 1) {
+					// 		return w + '-' + attributes[index + 1];
+					// 	}
+					// 	return '';
+					// });
+					// attributes = attributes.concat(bigramasAux);
 					const auxInstance = getInstanceFromAttributes(
 						attributes,
 						importantAttributes,
@@ -233,6 +262,8 @@ export const createManualModelData = () => {
 			instancesProcessed.map((r) => r.class),
 		);
 		createJsonFile(model, `./uploads/manual/models/${modelId}`, 'model');
+
+		console.timeEnd('testForEach');
 	});
 };
 
@@ -341,7 +372,7 @@ export const createModelData = (modelId, modelNumber) => {
 		});
 
 		const importantAttributes = Object.keys(wordsCounter).filter(
-			(word) => wordsCounter[word] >= minCount,
+			(word) => (wordsCounter[word] >= word.includes('-') ? 10 : 20),
 		);
 
 		const attrFrequencies = importantAttributes
@@ -661,11 +692,11 @@ export const calculateTfIdf = (
 	docsCount,
 ) => {
 	// WITH TF-DIF
-	// const TF = wordCount / totalDocWords;
-	// const IDF = Math.log(docsCount / docsWithWord) + 1;
-	// return TF * IDF;
+	const TF = wordCount / totalDocWords;
+	const IDF = Math.log(docsCount / docsWithWord) + 1;
+	return TF * IDF;
 
 	// WITHOUT TF-IDF
-	return wordCount;
+	// return wordCount;
 };
 ////////////////////////////////////////////////////////////////////////
