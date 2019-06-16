@@ -55,7 +55,7 @@ router.post('/predict', function(req, res, next) {
 		const predictions = values.map(
 			(p, index) =>
 				parseInt(p) === 1
-					? probs[index][1] >= 0.7
+					? probs[index][1] >= 0.8
 						? model.classes[1]
 						: model.classes[0]
 					: model.classes[parseInt(p)],

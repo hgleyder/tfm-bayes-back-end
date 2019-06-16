@@ -3,9 +3,11 @@ import fs from 'fs';
 import { Database } from '../config/firebase';
 const sw = require('stopword');
 import stemmer from 'stemmer';
+import Matrix from 'ml-matrix';
 import {
 	crossValidationModel,
 	crossValidationModelSpam,
+	getMetricsFromPredictions,
 } from '../models/utils/evaluation';
 import { MultinomialNB } from '../models';
 import { createJsonFile } from '../utils/files';
@@ -23,10 +25,8 @@ export const createManualModelData = () => {
 	fs.readFile(instancesPath, 'utf8', (err, data) => {
 		if (err) throw err;
 		// Kick off the timer
-		console.time('testForEach');
 		const instances = data.split('\n');
 		instances.map((i, cont) => {
-			console.log(cont);
 			let Palabras = [];
 			// Replace email addresses with 'emailaddr'
 			// Replace URLs with 'httpaddr'
@@ -270,9 +270,11 @@ export const createManualModelData = () => {
 export const createModelData = (modelId, modelNumber) => {
 	let words = [];
 	let wordsCounter = {};
-	const minCount = 100;
+	const minCount = 30;
 	const instancesPath = './uploads/models/' + modelId + '/emails.csv';
+	const testInstancesPath = './uploads/models/datasetTest.csv';
 	const separator = '/---/';
+	console.log('vamo a esto')
 
 	// ----------- CREATE ATTRIBUTES FILE -----------------
 	fs.readFile(instancesPath, 'utf8', (err, data) => {
@@ -371,13 +373,18 @@ export const createModelData = (modelId, modelNumber) => {
 			}
 		});
 
+
+	console.log('vamo a esto')
+
 		const importantAttributes = Object.keys(wordsCounter).filter(
-			(word) => (wordsCounter[word] >= word.includes('-') ? 10 : 20),
+			(word) => (wordsCounter[word] >= minCount),
 		);
 
 		const attrFrequencies = importantAttributes
 			.map((attr) => `${attr},${wordsCounter[attr]}`)
 			.join('\n');
+
+
 
 		fs.writeFileSync(
 			`./uploads/models/${modelId}/attributes.txt`,
@@ -388,7 +395,8 @@ export const createModelData = (modelId, modelNumber) => {
 
 		// ----------- CREATE DATASET FILE -----------------
 		const instancesProcessed = [];
-		instances.map((i) => {
+		instances.map((i, inddd) => {
+			console.log(inddd)
 			if (i.split(separator)[1]) {
 				let attributes = i
 					.split(separator)[0]
@@ -472,28 +480,81 @@ export const createModelData = (modelId, modelNumber) => {
 			}
 		});
 
-		// ----------- CREATE MODEL METRICS --------------------
-		var metrics = crossValidationModelSpam(
-			MultinomialNB,
-			instancesProcessed.map((r) => r.instance),
-			instancesProcessed.map((r) => r.class),
-		);
+		console.log('entrenemos')
 
-		Database.child('models/' + modelId).set({
-			metrics,
-			uid: modelId,
-			number: modelNumber,
-			instancesCount: instancesProcessed.map((r) => r.instance).length,
-			attributesCount: importantAttributes.length,
+		fs.readFile(testInstancesPath, 'utf8', (err, dataTest) => {
+			if (err) throw err;
+			const test_ins = dataTest.split('\n');
+
+			console.log(test_ins)
+
+			let datosPrueba = { instances: [], classes: [] }
+			test_ins.map((i) => {
+				if (i.split(separator)[0].toLowerCase().match(/([a-z]+)/g)) {
+					let text = i.split(separator)[0].toLowerCase().match(/([a-z]+)/g).join(' ');
+					let clase = i.split(separator)[1].toLowerCase().match(/([a-z]+)/g);
+
+					text = text.replace(/[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*/g, 'emailaddr')
+					text = text.replace(/(((https?:\/\/)|(www\.))[^\s]+)/g, 'urladdrs')
+					text = text.replace(/[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*/g, 'phonenumbr')
+					text = text.replace(/-?\d+\.?\d*$/g, 'numbr')
+					text = text.replace(/(kr|$|£|€)/g, 'currencysymbol')
+
+					text = removeStopwordsAndApplyStemmer(text);
+					var instance = importantAttributes.map(a => text.filter(t => t === a).length).join(',');
+					instance = instance.substring(0, instance.length - 1);
+					datosPrueba.instances.push(instance.split(','))
+					datosPrueba.classes.push(clase)
+				}
+			});
+
+			let classificator = new MultinomialNB();
+			classificator.fit(
+				instancesProcessed.map((r) => r.instance),
+				instancesProcessed.map((r) => r.class)
+			)
+			let classesListTest = classificator.classes;
+			let predicciones_direct = classificator.predict(datosPrueba.instances);
+			let predicciones = classificator.predict_proba(datosPrueba.instances);
+			const valsPreds = predicciones.map((pred) =>
+						pred.map((v) => Math.pow(10, v)),
+			);
+
+			const probs = valsPreds.map((p) => {
+						const total = p[0] + p[1];
+						return [ p[0] / total, p[1] / total ];
+					});
+
+			let yPredictions = predicciones_direct.map((pred, i) => parseInt(pred) === 1
+			? probs[i][1] >= 0.8
+				? classesListTest[1].toString()
+				: classesListTest[0].toString()
+			: classesListTest[pred].toString())
+
+
+
+			// ----------- CREATE MODEL METRICS --------------------
+			var metrics = getMetricsFromPredictions(
+				datosPrueba.classes,
+				yPredictions,
+			);
+
+			Database.child('models/' + modelId).set({
+				metrics,
+				uid: modelId,
+				number: modelNumber,
+				instancesCount: instancesProcessed.map((r) => r.instance).length,
+				attributesCount: importantAttributes.length,
+			});
+
+			// ---------- SAVE MODEL -------------
+			const model = new MultinomialNB();
+			model.fit(
+				instancesProcessed.map((r) => r.instance),
+				instancesProcessed.map((r) => r.class),
+			);
+			createJsonFile(model, './uploads/models/' + modelId, 'model');
 		});
-
-		// ---------- SAVE MODEL -------------
-		const model = new MultinomialNB();
-		model.fit(
-			instancesProcessed.map((r) => r.instance),
-			instancesProcessed.map((r) => r.class),
-		);
-		createJsonFile(model, './uploads/models/' + modelId, 'model');
 	});
 };
 
@@ -512,7 +573,6 @@ export const createInitialDatasetFile = () => {
 				'./uploads/models/' + modelId + '/emails.csv',
 				(err) => {
 					if (err) throw err;
-
 					Database.child('verifiedMessages')
 						.once('value', (newMessages) => {
 							if (newMessages.val()) {
@@ -692,7 +752,7 @@ export const calculateTfIdf = (
 	docsCount,
 ) => {
 	// WITH TF-DIF
-	const TF = wordCount / totalDocWords;
+	const TF = wordCount;
 	const IDF = Math.log(docsCount / docsWithWord) + 1;
 	return TF * IDF;
 
