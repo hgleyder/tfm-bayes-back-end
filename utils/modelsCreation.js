@@ -274,7 +274,7 @@ export const createModelData = (modelId, modelNumber) => {
 	const instancesPath = './uploads/models/' + modelId + '/emails.csv';
 	const testInstancesPath = './uploads/models/datasetTest.csv';
 	const separator = '/---/';
-	console.log('vamo a esto')
+	console.log('vamo a esto');
 
 	// ----------- CREATE ATTRIBUTES FILE -----------------
 	fs.readFile(instancesPath, 'utf8', (err, data) => {
@@ -373,18 +373,15 @@ export const createModelData = (modelId, modelNumber) => {
 			}
 		});
 
-
-	console.log('vamo a esto')
+		console.log('vamo a esto');
 
 		const importantAttributes = Object.keys(wordsCounter).filter(
-			(word) => (wordsCounter[word] >= minCount),
+			(word) => wordsCounter[word] >= minCount,
 		);
 
 		const attrFrequencies = importantAttributes
 			.map((attr) => `${attr},${wordsCounter[attr]}`)
 			.join('\n');
-
-
 
 		fs.writeFileSync(
 			`./uploads/models/${modelId}/attributes.txt`,
@@ -396,7 +393,7 @@ export const createModelData = (modelId, modelNumber) => {
 		// ----------- CREATE DATASET FILE -----------------
 		const instancesProcessed = [];
 		instances.map((i, inddd) => {
-			console.log(inddd)
+			console.log(inddd);
 			if (i.split(separator)[1]) {
 				let attributes = i
 					.split(separator)[0]
@@ -480,58 +477,81 @@ export const createModelData = (modelId, modelNumber) => {
 			}
 		});
 
-		console.log('entrenemos')
+		console.log('entrenemos');
 
 		fs.readFile(testInstancesPath, 'utf8', (err, dataTest) => {
 			if (err) throw err;
 			const test_ins = dataTest.split('\n');
 
-			console.log(test_ins)
+			console.log(test_ins);
 
-			let datosPrueba = { instances: [], classes: [] }
+			let datosPrueba = { instances: [], classes: [] };
 			test_ins.map((i) => {
 				if (i.split(separator)[0].toLowerCase().match(/([a-z]+)/g)) {
-					let text = i.split(separator)[0].toLowerCase().match(/([a-z]+)/g).join(' ');
-					let clase = i.split(separator)[1].toLowerCase().match(/([a-z]+)/g);
+					let text = i
+						.split(separator)[0]
+						.toLowerCase()
+						.match(/([a-z]+)/g)
+						.join(' ');
+					let clase = i
+						.split(separator)[1]
+						.toLowerCase()
+						.match(/([a-z]+)/g);
 
-					text = text.replace(/[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*/g, 'emailaddr')
-					text = text.replace(/(((https?:\/\/)|(www\.))[^\s]+)/g, 'urladdrs')
-					text = text.replace(/[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*/g, 'phonenumbr')
-					text = text.replace(/-?\d+\.?\d*$/g, 'numbr')
-					text = text.replace(/(kr|$|£|€)/g, 'currencysymbol')
+					text = text.replace(
+						/[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*/g,
+						'emailaddr',
+					);
+					text = text.replace(
+						/(((https?:\/\/)|(www\.))[^\s]+)/g,
+						'urladdrs',
+					);
+					text = text.replace(
+						/[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*/g,
+						'phonenumbr',
+					);
+					text = text.replace(/-?\d+\.?\d*$/g, 'numbr');
+					text = text.replace(/(kr|$|£|€)/g, 'currencysymbol');
 
 					text = removeStopwordsAndApplyStemmer(text);
-					var instance = importantAttributes.map(a => text.filter(t => t === a).length).join(',');
+					var instance = importantAttributes
+						.map((a) => text.filter((t) => t === a).length)
+						.join(',');
 					instance = instance.substring(0, instance.length - 1);
-					datosPrueba.instances.push(instance.split(','))
-					datosPrueba.classes.push(clase)
+					datosPrueba.instances.push(instance.split(','));
+					datosPrueba.classes.push(clase);
 				}
 			});
 
 			let classificator = new MultinomialNB();
 			classificator.fit(
 				instancesProcessed.map((r) => r.instance),
-				instancesProcessed.map((r) => r.class)
-			)
+				instancesProcessed.map((r) => r.class),
+			);
 			let classesListTest = classificator.classes;
-			let predicciones_direct = classificator.predict(datosPrueba.instances);
-			let predicciones = classificator.predict_proba(datosPrueba.instances);
+			let predicciones_direct = classificator.predict(
+				datosPrueba.instances,
+			);
+			let predicciones = classificator.predict_proba(
+				datosPrueba.instances,
+			);
 			const valsPreds = predicciones.map((pred) =>
-						pred.map((v) => Math.pow(10, v)),
+				pred.map((v) => Math.pow(10, v)),
 			);
 
 			const probs = valsPreds.map((p) => {
-						const total = p[0] + p[1];
-						return [ p[0] / total, p[1] / total ];
-					});
+				const total = p[0] + p[1];
+				return [ p[0] / total, p[1] / total ];
+			});
 
-			let yPredictions = predicciones_direct.map((pred, i) => parseInt(pred) === 1
-			? probs[i][1] >= 0.8
-				? classesListTest[1].toString()
-				: classesListTest[0].toString()
-			: classesListTest[pred].toString())
-
-
+			let yPredictions = predicciones_direct.map(
+				(pred, i) =>
+					parseInt(pred) === 1
+						? probs[i][1] >= 0.8
+							? classesListTest[1].toString()
+							: classesListTest[0].toString()
+						: classesListTest[pred].toString(),
+			);
 
 			// ----------- CREATE MODEL METRICS --------------------
 			var metrics = getMetricsFromPredictions(
@@ -543,7 +563,8 @@ export const createModelData = (modelId, modelNumber) => {
 				metrics,
 				uid: modelId,
 				number: modelNumber,
-				instancesCount: instancesProcessed.map((r) => r.instance).length,
+				instancesCount: instancesProcessed.map((r) => r.instance)
+					.length,
 				attributesCount: importantAttributes.length,
 			});
 
@@ -752,11 +773,11 @@ export const calculateTfIdf = (
 	docsCount,
 ) => {
 	// WITH TF-DIF
-	const TF = wordCount;
-	const IDF = Math.log(docsCount / docsWithWord) + 1;
-	return TF * IDF;
+	// const TF = wordCount;
+	// const IDF = Math.log(docsCount / docsWithWord) + 1;
+	// return TF * IDF;
 
 	// WITHOUT TF-IDF
-	// return wordCount;
+	return wordCount;
 };
 ////////////////////////////////////////////////////////////////////////
